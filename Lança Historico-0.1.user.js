@@ -22,125 +22,154 @@
 	var style = document.createElement('style');
 	style.type = 'text/css';
 	style.innerHTML = `
-    .botaoSCT {
-      background: #EBEBEB;
-      backdrop-filter: blur(6px);
-      border-radius: 20px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #087EFF;
-      font-size: 12px;
-      font-weight: normal;
-      padding: 9px 20px;
-      min-width: 124.5px;
-      margin: 5px;
-      text-decoration: none;
-      transition: all 0.15s ease-in-out;
-    }
-    .botaoSCT:hover {
-      background: #3982F7;
-      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-      transform: scale(1.02);
-      color: #fff;
-    }
-    #csvFileInput {
-      width: 85%;
-      max-width: 355px;
-      height: 45px;
-      padding: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(8px);
-      color: #676767;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-    }
-    .btninserido {
-      background: rgba(84, 210, 105, 0.71);
-      color:#092808  !important;
-      box-shadow: none;
-    }.btninserido:hover {
-      background: rgba(84, 210, 105, 1);
-    }
-    #loadingGif {
-      width: 100px;
-    }
-    .divbotoes {
-      max-height: 600px;
-      overflow: hidden;
-      line-height: 20px;
-    }
-    .divcarregando {
-      overflow: hidden;
-      display:none;
-    }
-    .open {
-      max-height: 500px;
-    }
-    .closed {
-      max-height: 0px;
-    }.credito1 * {
-    font-family: Helvetica, Arial, sans-serif !important;
-}  #loadingBtn {
-    position: relative;
-    padding: 25px 20px;
-    font-size: 14px;
-    background: none;
-    color: #087DFF;
-    cursor: pointer;
-    border-radius: 5px;
-    overflow: hidden;
-    border:none;
-  }
-svg:hover path{
-fill:#087DFF !Important;
+.botaoSCT {
+  background: #ebebeb;
+  backdrop-filter: blur(6px);
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #087eff;
+  font-size: 12px;
+  font-weight: normal;
+  padding: 9px 20px;
+  min-width: 124.5px;
+  margin: 5px;
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
 }
-  #loadingBtn.loading {
-    color: #087DFF;
-    pointer-events: none;
-  }
+.botaoSCT:hover {
+  background: #3982f7;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  transform: scale(1.02);
+  color: #fff;
+}
+  .divseletor h3 {
+        font-size: 20px !important;
+        font-weight: 500 !important;
+        margin-bottom: 15px;
+        color: #1d1d1f;
+        letter-spacing: -0.5px;
+        }
 
-  #loadingBtn.loading::after {
-    content: "";
-    position: absolute;
-    width: 56px;
-    height: 56px;
-    border: 3px solid #087DFF;
-    border-top-color: transparent;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin 1.8s linear infinite;
-  }
+#TEXTAREACSV {
+  max-width: 355px;
+  height: 150px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(8px);
+  color: #666;
+  transition: all 0.2s ease-in-out;
+  resize: none;
+  font-size:10pt;
+}
+.btninserido {
+  background: rgba(84, 210, 105, 0.71);
+  color: #092808 !important;
+  box-shadow: none;
+}
+.btninserido:hover {
+  background: rgba(84, 210, 105, 1);
+}
+#loadingGif {
+  width: 100px;
+}
+.divbotoes {
+  max-height: 600px;
+  overflow: hidden;
+  line-height: 20px;
+}
+.divajuda {
+  display: none;
+  max-height: 600px;
+  width: 350px;
+  overflow: hidden;
+  line-height: 20px;
+  font-family: Helvetica, Arial, sans-serif !important;
+  font-size: 11px;
+  font-weight: normal;
+  text-align: justify;
+}
+.divcarregando {
+  overflow: hidden;
+  display: none;
+}
+.open {
+  max-height: 500px;
+}
+.closed {
+  max-height: 0px;
+}
+#credito1 * {
+  font-family: Helvetica, Arial, sans-serif !important;
+}
+#credito1 a {
+  color: #666 !important;
+}
+#loadingBtn {
+  position: relative;
+  padding: 25px 20px;
+  font-size: 14px;
+  background: none;
+  color: #087dff;
+  cursor: pointer;
+  border-radius: 5px;
+  overflow: hidden;
+  border: none;
+}
+svg:hover path {
+  fill: #087dff !important;
+}
+#loadingBtn.loading {
+  color: #087dff;
+  pointer-events: none;
+}
 
-  @keyframes spin {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-  }
+#loadingBtn.loading::after {
+  content: "";
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border: 3px solid #087dff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: spin 1.8s linear infinite;
+}
 
-  .mensagem{
-  display:none;
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.mensagem {
+  display: none;
   padding: 18.5px;
   border-radius: 15px;
-  background: rgba(255,255,255,0.3);
+  background: rgba(255, 255, 255, 0.3);
   margin-bottom: -20px;
-  }
+}
 
-  .msgcancela{
+.msgcancela {
   background: none;
   box-shadow: none;
   border-color: #ddd;
   color: #d94839;
-  }
+}
 
-    .msgcancela:hover{
-    background: #f26865;
-    border:none;
-  }
-  .divlog{
- background: rgba(244, 244, 244, 0.58);
+.msgcancela:hover {
+  background: #f26865;
+  border: none;
+}
+.divlog {
+  background: rgba(244, 244, 244, 0.58);
   border-radius: 16px;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0);
   backdrop-filter: blur(6.6px);
@@ -153,16 +182,16 @@ fill:#087DFF !Important;
   position: absolute;
   z-index: 2002;
   padding: 5px;
-  top: -45px;
-  height: 25px;
+  bottom: 103%;
+  min-height: 25px;
   min-width: 340px;
-  color: #087EFF;
-      font-size: 14px;
-      font-weight: normal;
-      font-family: Helvetica, Arial, sans-serif !important;
-      line-height:25px;
-      display: none;
-  }
+  color: #087eff;
+  font-size: 14px;
+  font-weight: normal;
+  font-family: Helvetica, Arial, sans-serif !important;
+  line-height: 25px;
+  display: none;
+}
   `;
 	document.head.appendChild(style);
 })();
@@ -229,7 +258,7 @@ document.body.appendChild(divCredit);
 // Atualiza o conteúdo da divCredit
 divCredit.innerHTML = `
 <div class="divlog" id="divlog"></div>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="btnscontrole"  width="20" height="20" style="display:none; float:left;margin: -6px;" id="btnvoltar" viewBox="0 0 256 256" xml:space="preserve">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" title="Voltar" version="1.1" class="btnscontrole"  width="20" height="20" style="display:none; float:left;margin: -6px;" id="btnvoltar" viewBox="0 0 256 256" xml:space="preserve">
 
 <defs>
 </defs>
@@ -238,7 +267,7 @@ divCredit.innerHTML = `
 	<path d="M 16.993 61.993 c 1.023 0 2.048 -0.391 2.828 -1.172 c 1.563 -1.562 1.563 -4.095 0 -5.656 L 9.657 45 l 10.164 -10.164 c 1.563 -1.562 1.563 -4.095 0 -5.657 c -1.561 -1.562 -4.094 -1.562 -5.656 0 L 1.172 42.171 C 0.422 42.922 0 43.939 0 45 c 0 1.061 0.422 2.078 1.172 2.828 l 12.993 12.993 C 14.945 61.603 15.97 61.993 16.993 61.993 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
 </g>
 </svg>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" class="btnscontrole"  width="20" height="20" style="display:none; float:right;margin: -6px;" id="btnatualizar" viewBox="0 0 256 256" xml:space="preserve">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"  title="Atualizar" class="btnscontrole"  width="20" height="20" style="display:none; float:right;margin: -6px;" id="btnatualizar" viewBox="0 0 256 256" xml:space="preserve">
 
 <defs>
 </defs>
@@ -248,17 +277,28 @@ divCredit.innerHTML = `
 </g>
 </svg>
   <div class="divseletor">
-    <h3 style="font-size:15pt;font-family: Helvetica, Arial, sans-serif !important;">Faça upload do arquivo .CSV<br>gerado pela planilha do Excel!</h3>
-    <span style='font-weight:normal;font-family: Helvetica, Arial, sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://drive.google.com/file/d/1x5FGs3agkSYgXV2klfGckxF5RboWJ-rC/view?usp=drive_link">clique aqui para fazer o download.</a></span><br><br>
-    <br><br><input type='file' id='csvFileInput' accept='.csv'>
+    <h3 style="font-size:15pt;font-family: Helvetica, Arial, sans-serif !important;">Cole abaixo os dados do histórico<br>gerados pela planilha do Drive!</h3>
+    <span style='font-weight:normal;font-family: Helvetica, Arial, sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">clique aqui para acessar o modelo.</a></span><br><br>
+    <br>
+    <textarea id="TEXTAREACSV" rows="10" cols="50" placeholder="Cole aqui os dados gerados na planilha..."></textarea>
     <br><br>
     <input type='button' id='btnCarregarDados' value='Carregar dados' class='botaoSCT'>
     <br><br><br>
   </div>
   <div class='divcarregando'><p style='font-weight:bold;font-size:20pt; line-height:0px; margin-bottom:20px; font-family: Helvetica, Arial, sans-serif !important;'>AGUARDE!</p><p style='font-weight:normal;font-family: Helvetica, Arial, sans-serif !important;' >estou inserindo o seu histórico...</p><button id="loadingBtn" onclick="startLoading()">0%</button></div>
   <div class='divbotoes' style='display:none'></div><br>
+  <div class="divajuda"><h3 style="font-size:15pt;text-align:center; line-height: 10px;font-family: Helvetica, Arial, sans-serif !important;">Como usar?</h3>
+  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">link</a>. Nela, você irá preencher os dados do histórico escolar.</p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
+<br><p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p><br></div>
   <div><span style='font-size:8pt;font-weight:normal;font-family: Helvetica, Arial, sans-serif !important;'>< Jhonatan Aquino /></span></div>
   <div><span style='font-size:8pt;font-weight:normal;font-family: Helvetica, Arial, sans-serif !important;'>${GM_info.script.name} v${GM_info.script.version}</span></div>
+  <svg xmlns="http://www.w3.org/2000/svg" title="Ajuda" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="20" height="20" class="btnajuda" id="btnajuda" viewBox="0 0 256 256" style=" float:left;margin: -6px;" xml:space="preserve"><defs></defs>
+<g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+	<path d="M 45 58.88 c -2.209 0 -4 -1.791 -4 -4 v -4.543 c 0 -1.101 0.454 -2.153 1.254 -2.908 l 8.083 -7.631 c 1.313 -1.377 2.035 -3.181 2.035 -5.087 v -0.302 c 0 -2.005 -0.791 -3.881 -2.228 -5.281 c -1.436 -1.399 -3.321 -2.14 -5.342 -2.089 c -3.957 0.102 -7.175 3.523 -7.175 7.626 c 0 2.209 -1.791 4 -4 4 s -4 -1.791 -4 -4 c 0 -8.402 6.715 -15.411 14.969 -15.623 c 4.183 -0.109 8.138 1.439 11.131 4.357 c 2.995 2.918 4.645 6.829 4.645 11.01 v 0.302 c 0 4.027 -1.546 7.834 -4.354 10.72 c -0.04 0.041 -0.08 0.081 -0.121 0.12 L 49 52.062 v 2.818 C 49 57.089 47.209 58.88 45 58.88 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #a5a5a5; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+	<path d="M 45 71.96 c -1.32 0 -2.61 -0.53 -3.54 -1.46 c -0.23 -0.23 -0.43 -0.49 -0.62 -0.76 c -0.18 -0.271 -0.33 -0.561 -0.46 -0.86 c -0.12 -0.311 -0.22 -0.62 -0.28 -0.94 c -0.07 -0.32 -0.1 -0.65 -0.1 -0.98 c 0 -0.32 0.03 -0.65 0.1 -0.97 c 0.06 -0.32 0.16 -0.641 0.28 -0.94 c 0.13 -0.3 0.28 -0.59 0.46 -0.86 c 0.19 -0.279 0.39 -0.529 0.62 -0.76 c 1.16 -1.16 2.89 -1.7 4.52 -1.37 c 0.32 0.07 0.629 0.16 0.93 0.29 c 0.3 0.12 0.59 0.28 0.859 0.46 c 0.28 0.181 0.53 0.391 0.761 0.62 c 0.239 0.23 0.439 0.48 0.63 0.76 c 0.18 0.271 0.33 0.561 0.46 0.86 c 0.12 0.3 0.22 0.62 0.279 0.94 C 49.97 66.31 50 66.64 50 66.96 c 0 0.33 -0.03 0.66 -0.101 0.979 c -0.06 0.32 -0.159 0.63 -0.279 0.94 c -0.13 0.3 -0.28 0.59 -0.46 0.86 c -0.19 0.27 -0.391 0.529 -0.63 0.76 c -0.23 0.229 -0.48 0.439 -0.761 0.62 c -0.27 0.18 -0.56 0.34 -0.859 0.46 c -0.301 0.13 -0.61 0.22 -0.93 0.279 C 45.65 71.93 45.33 71.96 45 71.96 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #a5a5a5; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+	<path d="M 45 90 C 20.187 90 0 69.813 0 45 S 20.187 0 45 0 s 45 20.187 45 45 S 69.813 90 45 90 z M 45 8 C 24.598 8 8 24.598 8 45 s 16.598 37 37 37 s 37 -16.598 37 -37 S 65.402 8 45 8 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #bebebe; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+</g>
+</svg>
 `;
 
 // Cria o iframe
@@ -275,14 +315,64 @@ ifrIframe2.setAttribute("style", "height: 700px; width: 1000px; display:none; bo
 divCredit.appendChild(ifrIframe2);
 
 // Adiciona o evento para carregar o CSV
-document.getElementById('btnCarregarDados').addEventListener('click', lerCSV);
-document.getElementById('btnatualizar').addEventListener('click', lerCSV);
+document.getElementById('btnCarregarDados').addEventListener('click', processarTextoCSV);
+document.getElementById('btnatualizar').addEventListener('click', processarTextoCSV);
 document.getElementById('btnvoltar').addEventListener('click', voltar);
+document.getElementById('btnajuda').addEventListener('click', ajuda);
+
+document.getElementById('vGEDALUCOD').addEventListener('focus', function(){$('.credito').slideUp(500, 'swing');});
+
+let avisoAtual = "";
+let resultadoAviso = "";
+// Variável para armazenar o aviso mais recente
+// Função que será chamada sempre que o conteúdo da div mudar
+async function capturarAviso(mutationsList) {
+    resultadoAviso = null;
+    for (let mutation of mutationsList) {
+        if (mutation.type === "childList") {
+            let conteudoHTML = mutation.target.innerHTML.trim(); // Captura todo o HTML da div
+            let conteudoTEXT = mutation.target.innerText.trim();
+            avisoAtual = conteudoHTML; // Atualiza a variável com o novo conteúdo HTML
+
+            console.log("Novo aviso:", avisoAtual);
+
+            // Verifica se contém "erro" ou "sucesso" no aviso
+            if (conteudoHTML.toLowerCase().includes("erro")) {
+                resultadoAviso = "erro";
+                exibirLog(conteudoTEXT,50000,'#FF4B40');
+                $('.divseletor').slideUp(500);
+                $('.divcarregando').slideUp(500);
+                setTimeout(() => { $('.divbotoes').slideDown(500, 'swing'); }, 100);
+                $('.btnscontrole').fadeIn(500);
+                $('.btnajuda').fadeIn(500);
+                await esperar(5000);
+                return;
+            } else if (conteudoHTML.toLowerCase().includes("sucesso")) {
+                resultadoAviso = "sucesso";
+            }
+        }
+    }
+}
+
+
 function voltar() {
     // Oculta os botões e controles e exibe o seletor novamente
     setTimeout(() => {$('.divbotoes').slideUp(500, 'swing');}, 100);
     $('.btnscontrole').fadeOut(500);
     $('.divseletor').slideDown(500, 'swing');
+    $('.divcarregando').slideUp(500, 'swing');
+    $('.divajuda').slideUp(500, 'swing');
+    $('#btnajuda').fadeIn(500);
+}
+function ajuda() {
+    // Oculta os botões e controles e exibe o seletor novamente
+    setTimeout(() => {$('.divbotoes').slideUp(500, 'swing');}, 100);
+    $('.divajuda').slideDown(500, 'swing');
+    $('.btnajuda').fadeOut(500);
+    $('#btnatualizar').fadeOut(500);
+    $('.divseletor').slideUp(500, 'swing');
+    $('.divcarregando').slideUp(500, 'swing');
+    $('#btnvoltar').slideDown(500, 'swing');
 }
 
 // Função para ler o arquivo CSV selecionado
@@ -317,6 +407,39 @@ function processarCSV(csvData) {
     verificanomeano();
 }
 
+// Função para processar os dados colados na textarea
+function processarTextoCSV() {
+    var texto = document.getElementById("TEXTAREACSV").value.trim(); // Remove espaços extras no início e fim
+
+    // Remove aspas no início e no fim, se existirem
+    if (texto.startsWith('"') && texto.endsWith('"')) {
+        texto = texto.slice(1, -1);
+    }
+
+    // Divide o texto em linhas e remove as vazias
+    var linhas = texto.split("\n").map(linha => linha.trim()).filter(linha => linha !== "");
+
+    Mxhistorico = []; // Limpa a matriz antes de preencher
+
+    // Organiza os dados do CSV em colunas de 4 elementos
+    for (let col = 0; col < linhas[0].split(",").length - 1; col += 4) {
+        let colunaMx = linhas.map(linha => {
+            let valores = linha.split(",");
+            return [
+                valores[col] || "",
+                valores[col + 1] || "",
+                valores[col + 2] || "",
+                valores[col + 3] || ""
+            ];
+        });
+        Mxhistorico.push(colunaMx);
+    }
+
+    criarBotoesHistorico();
+    verificanomeano();
+}
+
+
 // Verifica os anos disponíveis no histórico do aluno
 async function verificanomeano() {
     var coluna = Mxhistorico[0];
@@ -348,7 +471,7 @@ async function verificanomeano() {
             let inputs = document.querySelectorAll('input[data-ano="' + ano + '"]');
             inputs.forEach(function(input) {
                 input.classList.add('btninserido');
-                input.setAttribute('data-index', iValue);
+                input.setAttribute('data-posicao', iValue);
             });
         });
 
@@ -380,6 +503,7 @@ async function criarBotoesHistorico() {
     $('.divseletor').slideUp(500);
     setTimeout(() => { $('.divbotoes').slideDown(500, 'swing'); }, 100);
     $('.btnscontrole').fadeIn(500);
+    $('.btnajuda').fadeIn(500);
 }
 // Função para inserir os dados no histórico
 async function inserir(bot, index) {
@@ -388,10 +512,11 @@ async function inserir(bot, index) {
 
     var anobotao = bot.getAttribute('data-ano');
     var indexbotao = bot.getAttribute('data-index');
+    var indexposicao = bot.getAttribute('data-posicao');
     var classebotao = bot.getAttribute('class');
 
     if (classebotao.includes('btninserido')) {
-        var codhistorico = document.getElementById('span_vGRIDGEDHISTCOD_000' + String(indexbotao)).innerHTML.replace(/\s+/g, '');
+        var codhistorico = document.getElementById('span_vGRIDGEDHISTCOD_000' + String(indexposicao)).innerHTML.replace(/\s+/g, '');
 
         let novoNo = document.createElement('div');
         novoNo.setAttribute('class', 'mensagem');
@@ -457,12 +582,33 @@ function esperarCarregarIframe(iframe, seletorSelect) {
                 resolve();
             } else {
                 await esperar(3000);
+                select = null;
                 checkOpcoesExist();
             }
         };
         checkOpcoesExist();
     });
+
 }
+
+// Função para aguardar até que avisoAtual contenha a palavra "sucesso"
+function esperarAviso() {
+    return new Promise((resolve) => {
+        let verificarAviso = async () => {
+            let avisoAtualcopia = avisoAtual;
+            if (avisoAtualcopia.toLowerCase().includes("sucesso")) {
+                resolve();
+            } else {
+                await esperar(1000);
+                avisoAtualcopia = null;
+                verificarAviso();
+            }
+        };
+        verificarAviso();
+    });
+}
+
+
 // Função para deletar a mensagem de confirmação
 async function deletarmsg() {
     let mensagem = document.querySelector('.mensagem');
@@ -472,17 +618,22 @@ async function deletarmsg() {
         mensagem.remove();
     }
 }
-function exibirLog(texto, tempo, cor = "#087EFF") {
+
+//Funçao para exibir mensagem curta na div de LOG
+function exibirLog(texto, tempo = 3000, cor = "#087EFF") {
     let divLog = document.getElementById("divlog");
     divLog.innerText = texto;
     divLog.style.color = cor; // Define a cor do texto
     $('.divlog').fadeIn(300);
-    setTimeout(() => {$('.divlog').fadeOut(300);}, tempo);
+    setTimeout(() => {$('.divlog').fadeOut(300);},tempo);
 }
 
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
-    exibirLog('Iniciando!', 3000,'#f26865');
+
+
+    exibirLog('Iniciando!', 3000);
+    $('.btnajuda').fadeOut(500);
     $('.btnscontrole').fadeOut(500);
     setTimeout(() => {
         $('.divbotoes').slideUp(500, 'swing');
@@ -504,11 +655,11 @@ async function preencherFormulario(codhistorico, index) {
     );
 
     let codaluno = coluna[1][0];
-    let tipodeavaliacao = coluna[2][2] === "" || /\d/.test(coluna[2][2]) ? "NOTA" : "CONCEITO";
-
+    let tipodeavaliacao = (!coluna[2] || !coluna[2][2] || coluna[2][2].trim() === "" || /\d/.test(coluna[2][2])) ? "NOTA" : "CONCEITO";
+    let codigolotacao = document.getElementById("span_vGERLOTCOD").textContent;
     ifrIframe1.src = codhistorico == 1
         ? `http://sigeduca.seduc.mt.gov.br/ged/HWGedValidacaoHistorico.aspx?${codhistorico},${codaluno},,0,HWMGedHistorico`
-        : `http://sigeduca.seduc.mt.gov.br/ged/hwtgedhistoricoescolar.aspx?${codhistorico},${codaluno},HWMGedHistorico,13072,UPD,N`;
+        : `http://sigeduca.seduc.mt.gov.br/ged/hwtgedhistoricoescolar.aspx?${codhistorico},${codaluno},HWMGedHistorico,${codigolotacao},UPD,N`;
 
     atualizarProgresso(5);
 
@@ -519,8 +670,17 @@ async function preencherFormulario(codhistorico, index) {
         iframeDoc.getElementById("vGEDHISTANO").value = coluna[0][0] || "";
         iframeDoc.getElementById("vGEDSERIECOD").value = coluna[0][1] || "";
         iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
+        if (coluna[1][2]) {iframeDoc.getElementById("vGEDHISTOBS").textContent = coluna[1][2];}
         iframeDoc.getElementById("vGEDHISTNOMLOT").setAttribute("value", coluna[0][2] || "");
         iframeDoc.getElementById("vGEDHISTCIDID").setAttribute("value", coluna[0][3] || "");
+
+        // Seleciona a div a ser observada
+        let divErro = iframeDoc.getElementById("gxErrorViewer");
+        if (divErro) {
+            let observer = new MutationObserver(capturarAviso);
+            // Configura o observer para monitorar alterações no conteúdo da div
+            observer.observe(divErro, { childList: true, subtree: true });
+        }
 
         const changeEvent = new Event('change');
 
@@ -528,7 +688,7 @@ async function preencherFormulario(codhistorico, index) {
         selectAvaliacao.value = tipodeavaliacao === "NOTA" ? "3" : "2";
         selectAvaliacao.dispatchEvent(changeEvent);
 
-        await esperar(900);
+        await esperar(1000);
         await esperarCarregarIframe(ifrIframe1, "#vGEDHISTTPO");
 
         let selectTipo = iframeDoc.getElementById('vGEDHISTTPO');
@@ -538,9 +698,14 @@ async function preencherFormulario(codhistorico, index) {
         let tamanhocoluna = coluna.length;
         atualizarProgresso(5);
         let evolucao = 85 / (tamanhocoluna - 2);
+         await esperar(500);
+        iframeDoc.querySelector(".btnIncluir")?.click();
+        await esperarAviso();
+
+        if(!coluna[2]){atualizarProgresso(100);}
 
         for (let linha = 2; linha < tamanhocoluna; linha++) {
-            await esperar(1000);
+             await esperar(500);
             await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
 
             let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
@@ -557,8 +722,8 @@ async function preencherFormulario(codhistorico, index) {
             atualizarProgresso(evolucao / 5);
 
             var nomedadisciplina = selectDisciplina.querySelector('option[value="'+coluna[linha][1]+'"]').textContent;
-            await esperar(300);
-
+            await esperar(400);
+            await esperar(500);
            let elemento = tipodeavaliacao === "NOTA"
             ? iframeDoc.getElementById("vGEDHISTDISCAVANOTA")
             : iframeDoc.getElementById("vGEDHISTDISCCONSGL");
@@ -566,6 +731,15 @@ async function preencherFormulario(codhistorico, index) {
             ? (coluna[linha][2] || "").replace(/\./g, ",")
             : coluna[linha][2];
             elemento.dispatchEvent(changeEvent);
+
+            var optionconceito = tipodeavaliacao === "CONCEITO"
+            ?elemento.querySelector('option[value="'+coluna[linha][2]+'"]')
+            :"é nota";
+            if(!optionconceito){
+                 exibirLog('Erro: Conceito informado não foi encontrado!', 20000,'#FF4B40');
+                voltar();
+                return;
+            }
 
             atualizarProgresso(evolucao / 5);
 
@@ -576,20 +750,44 @@ async function preencherFormulario(codhistorico, index) {
 
             await esperar(1000);
             iframeDoc.querySelector(".btnIncluir")?.click();
+
+            await esperarAviso();
+
             atualizarProgresso(evolucao / 5);
 
             //Exibir log da displina incluida
             exibirLog(nomedadisciplina + '  Inserido!', 1500);
-
+            selectArea = null;
+            selectDisciplina = null;
+            elemento = null;
+            avisoAtual = null;
         }
 
+        if (coluna[1][1]){
+        iframeDoc.getElementById("vGEDHISTCRGHOR").value = coluna[1][1];
+        iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+        exibirLog('Corrigindo a carga horária!', 2000);
+        await esperar(600);
+        iframeDoc.querySelector(".btnIncluir")?.click();
+        }
 
-        await esperar(4000);
+        await esperar(3000);
 
         $('.divcarregando').slideUp(1000);
         btn.classList.remove("loading");
-        exibirLog('CONCLUÍDO!', 4000,'#7ED88D');
-        lerCSV();
+        exibirLog('CONCLUÍDO!', 4000,'#34A568');
+        processarTextoCSV();
+        tipodeavaliacao = null;
+        coluna = null;
+        codaluno = null;
+        tamanhocoluna = null;
+        evolucao = null;
+        nomedadisciplina = null;
+        optionconceito = null;
+        selectAvaliacao = null;
+        selectTipo = null;
+
+
         await esperar(3000);
 
         document.getElementById("loadingBtn").innerText = "0%";
@@ -598,3 +796,10 @@ async function preencherFormulario(codhistorico, index) {
         iframe.remove();
     });
 }
+
+//COISAS PARA CORRIGIR/MELHORAR:
+//Contagem de progresso precisa ser calculada em uma variavel e arredondado apenas para exibir
+//Fazer sistema do conferir se a disciplina foi lançada antes de ir para o proximo e exbir um erro antes de seguir em frente
+//Melhorar o sistema de edição para impedir que alguem edite coisas dos outros
+//Integrar com o sistema de avisos do proprio GED paara fazer algumas conferencias
+//
