@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.0
+// @version       3.1
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -51,6 +51,7 @@
             font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;
         }
 
+
         #containerLAH a {
             color: #666 !important;
         }
@@ -58,6 +59,15 @@
             padding: 0;
             text-align: center;
             min-width: 460px;
+        }
+
+           /* Estilos do botão de exibir */
+        #exibirLAH {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            padding: 5px 15px;
         }
         /* Estilo base do botão LAH */
             #containerLAH .botaoSCT {
@@ -76,6 +86,19 @@
                 transition: all 0.15s ease-in-out;
             }
 
+             #containerLAH .msgsim, #containerLAH  #btnCarregarDados {
+            background: #3982f7;
+            color: #fff;
+            border: none;
+        }
+
+        #containerLAH .msgsim:hover, #containerLAH  #btnCarregarDados:hover{
+            background: #3982f7;
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+
             /* Hover padrão */
             #containerLAH .botaoSCT:hover {
                 background: #3982f7;
@@ -85,7 +108,7 @@
 
             /* Botão de sucesso */
             #containerLAH .btninserido {
-                background: rgba(84, 210, 105, 0.8);  /* Aumentei opacidade para mais consistência */
+                background: #34A568;  /* Aumentei opacidade para mais consistência */
                 color: #fff !important;  /* Mudei para branco para maior consistência */
                 border: none;
             }
@@ -97,11 +120,11 @@
 
         /* Estilos da área de texto */
         #containerLAH #TEXTAREACSV {
-            max-width: 355px;
+            width: 450px;
             height: 150px;
             padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.7);
-            border-radius: 8px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(8px);
             color: #666;
@@ -231,7 +254,6 @@
 
         #containerLAH .msgcancela:hover {
             background: #f26865;
-            border: none;
         }
 
         /* Animações */
@@ -246,11 +268,44 @@
 // Inicializa a variável para armazenar os dados CSV
 var Mxhistorico = [];
 
+// Adiciona funções para manipular cookies (MOVER PARA ANTES DA CRIAÇÃO DO BOTÃO)
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        let date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+    let nameEQ = name + "=";
+    let ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+// Verifica o estado do cookie ao carregar a página
+$(document).ready(function() {
+    let containerState = getCookie('containerLAHState');
+    if(containerState !== null) {
+        containerState = containerState === 'true';
+        if(!containerState) {
+            $("#containerLAH").hide();
+            btnExibir.value = "ABRIR | Lançador de históricos";
+        }
+    }
+});
 
 // Cria o botão para exibir ou minimizar a caixa de conteúdo
 var btnExibir = document.createElement('input');
 btnExibir.type = 'button';
-btnExibir.id = 'exibir1';
+btnExibir.id = 'exibirLAH';
 btnExibir.value = 'MINIMIZAR';
 btnExibir.className = 'menuSCT';
 btnExibir.style = `
@@ -258,7 +313,6 @@ btnExibir.style = `
   color: #ffffff;
   font-size: 12px;
   border:none;
-  width: 100px;
   height: 30px;
   position: fixed;
   z-index: 2002;
@@ -270,10 +324,14 @@ btnExibir.style = `
 `;
 btnExibir.onmouseover = () => btnExibir.style.backgroundColor = "#3982F7";
 btnExibir.onmouseout = () => btnExibir.style.backgroundColor = "#474e68";
+
+// Configura o evento de clique com as funções de cookie
 btnExibir.onclick = function() {
-	$("#containerLAH").slideToggle();
-	this.value = this.value === "MINIMIZAR" ? "ABRIR" : "MINIMIZAR";
+    $("#containerLAH").slideToggle();
+    this.value = this.value === "MINIMIZAR" ? "ABRIR | Lançador de históricos" : "MINIMIZAR";
+    setCookie('containerLAHState', this.value === "MINIMIZAR", 30);
 };
+
 document.body.appendChild(btnExibir);
 
 // Cria a caixa de conteúdo
@@ -519,7 +577,7 @@ async function inserir(bot, index) {
             <p style="font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important; font-weight:normal;">
                 Tem certeza que deseja sobrescrever o histórico de ${anobotao}?
             </p>
-            <input type="button" class="botaoSCT msgsim" value="SOBRESCREVER">
+            <input type="button" class="botaoSCT msgsim" value="Sobrescrever">
             <input type="button" class="botaoSCT msgcancela" value="Cancelar">
         `;
 
@@ -759,10 +817,3 @@ async function preencherFormulario(codhistorico, index) {
         iframe.remove();
     });
 }
-
-//COISAS PARA CORRIGIR/MELHORAR:
-//Contagem de progresso precisa ser calculada em uma variavel e arredondado apenas para exibir
-//Fazer sistema do conferir se a disciplina foi lançada antes de ir para o proximo e exbir um erro antes de seguir em frente
-//Melhorar o sistema de edição para impedir que alguem edite coisas dos outros
-//Integrar com o sistema de avisos do proprio GED paara fazer algumas conferencias
-//
