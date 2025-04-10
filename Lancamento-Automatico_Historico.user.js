@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.1
+// @version       3.2
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -268,6 +268,9 @@
 // Inicializa a variável para armazenar os dados CSV
 var Mxhistorico = [];
 
+// Adiciona no início do script, após as declarações de variáveis globais
+var permissoesHistorico = new Map();
+
 // Adiciona funções para manipular cookies (MOVER PARA ANTES DA CRIAÇÃO DO BOTÃO)
 function setCookie(name, value, days) {
     let expires = "";
@@ -513,7 +516,18 @@ async function verificanomeano() {
         while (true) {
             let span = document.getElementById('span_vDESC_GEDHISTANO_000' + String(i));
             if (span === null) break;
-            vetor.push([span.innerHTML, i]);
+            
+            // Verifica a permissão de alteração
+            let imgPermissao = document.getElementById('vALTERAR_000' + String(i));
+            let temPermissao = imgPermissao && !imgPermissao.src.includes('naoalterar.gif') ? 1 : 0;
+            
+            // Armazena a permissão no Map usando o código do histórico como chave
+            let codHistorico = document.getElementById('span_vGRIDGEDHISTCOD_000' + String(i))?.innerHTML.replace(/\s+/g, '');
+            if (codHistorico) {
+                permissoesHistorico.set(codHistorico, temPermissao);
+            }
+            
+            vetor.push([span.innerHTML, i, temPermissao]);
             i++;
         }
 
@@ -521,11 +535,17 @@ async function verificanomeano() {
         vetor.forEach(function(item) {
             let ano = item[0];
             let iValue = item[1];
+            let permissao = item[2];
 
             let inputs = document.querySelectorAll('input[data-ano="' + ano + '"]');
             inputs.forEach(function(input) {
                 input.classList.add('btninserido');
                 input.setAttribute('data-index', iValue);
+                input.setAttribute('data-perm', permissao);
+                
+                if (permissao === 0) {
+                    input.title = 'Você não tem permissão para alterar este histórico';
+                }
             });
         });
 
@@ -548,7 +568,10 @@ async function criarBotoesHistorico() {
         botao.setAttribute('value', 'Inserir histórico de ' + ano);
         botao.setAttribute('data-index', index);
         botao.setAttribute('data-ano', ano);
-        botao.addEventListener("click", function() { inserir(this, index); });
+        botao.addEventListener("click", function() { 
+            let permissao = this.getAttribute('data-perm');
+            inserir(this, index, permissao ? parseInt(permissao) : undefined); 
+        });
         divBotoes.appendChild(botao);
         divBotoes.appendChild(document.createElement('br'));
     });
@@ -560,7 +583,7 @@ async function criarBotoesHistorico() {
     $('.btnajuda').fadeIn(500);
 }
 // Função para inserir os dados no histórico
-async function inserir(bot, index) {
+async function inserir(bot, index, permissao) {
     deletarmsg();
     await esperar(500);
 
@@ -573,21 +596,32 @@ async function inserir(bot, index) {
 
         let novoNo = document.createElement('div');
         novoNo.setAttribute('class', 'mensagem');
-        novoNo.innerHTML = `
-            <p style="font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important; font-weight:normal;">
-                Tem certeza que deseja sobrescrever o histórico de ${anobotao}?
-            </p>
-            <input type="button" class="botaoSCT msgsim" value="Sobrescrever">
-            <input type="button" class="botaoSCT msgcancela" value="Cancelar">
-        `;
+        
+        if (permissao === 0) {
+            novoNo.innerHTML = `
+                <p style="font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important; font-weight:normal;">
+                    Você não pode alterar este Historico. Parece que ele foi inserido por outra escola!
+                </p>
+            `;
+        } else {
+            novoNo.innerHTML = `
+                <p style="font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important; font-weight:normal;">
+                    Tem certeza que deseja sobrescrever o histórico de ${anobotao}?
+                </p>
+                <input type="button" class="botaoSCT msgsim" value="Sobrescrever">
+                <input type="button" class="botaoSCT msgcancela" value="Cancelar">
+            `;
+        }
 
         bot.insertAdjacentElement('afterend', novoNo);
         $('.mensagem').slideToggle();
 
-        document.querySelector(".msgcancela").addEventListener("click", deletarmsg);
-        document.querySelector(".msgsim").addEventListener("click", function() {
-            preencherFormulario(codhistorico, index);
-        });
+        if (permissao !== 0) {
+            document.querySelector(".msgcancela").addEventListener("click", deletarmsg);
+            document.querySelector(".msgsim").addEventListener("click", function() {
+                preencherFormulario(codhistorico, index);
+            });
+        }
     } else {
         preencherFormulario(1, index);
     }
@@ -664,6 +698,16 @@ function exibirLog(texto, tempo, cor = "#087EFF") {
 
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
+    // Verifica a permissão real antes de prosseguir
+    if (codhistorico !== 1) { // Se não for um novo histórico
+        let permissaoReal = permissoesHistorico.get(codhistorico);
+        if (permissaoReal === 0) {
+            exibirLog('Você não tem permissão para alterar este histórico!', 3000, '#FF4B40');
+            voltar();
+            return;
+        }
+    }
+
     exibirLog('Iniciando!', 3000);
     $('.btnajuda').fadeOut(500);
     $('.btnscontrole').fadeOut(500);
