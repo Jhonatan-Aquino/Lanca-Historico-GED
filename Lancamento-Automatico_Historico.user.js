@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.2
+// @version       3.3
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -377,7 +377,7 @@ divCredit.innerHTML = `
   <div class='divcarregando'><p style='font-weight:bold;font-size:20pt; line-height:0px; margin-bottom:20px; font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>AGUARDE!</p><p style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;' >estou inserindo o seu histórico...</p><button id="loadingBtn" onclick="startLoading()">0%</button></div>
   <div class='divbotoes' style='display:none'></div><br>
   <div class="divajuda"><h3 style="font-size:15pt;text-align:center; line-height: 10px;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;">Como usar?</h3>
-  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">link</a>. Nela, você irá preencher os dados do histórico escolar.</p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
+  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.</p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
 <br><p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p><br></div>
   <div><span style='font-size:8pt;font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'><a href="https://github.com/Jhonatan-Aquino/" target="_blank" style="text-color:rgb(71, 78, 104) !important;  text-decoration: none !important;">< Jhonatan Aquino /></a></span>
 </div>
@@ -860,4 +860,214 @@ async function preencherFormulario(codhistorico, index) {
         ifrIframe1.src = "blank";
         iframe.remove();
     });
+}
+
+
+// Exemplo de uso:
+adicionarEfeitoBrilhoFlexivel('#containerLAH', {
+    delay: 1000,
+    duration: 2000,
+    colors: {
+        before: [
+            'rgba(235, 20, 20, 0.3)',
+            'transparent',
+            'rgba(64, 255, 166, 0.3)',
+            'rgba(214, 114, 114, 0.5)',
+            'transparent',
+            'rgba(255, 40, 40, 0.6)'
+        ],
+        after: [
+            'rgba(57, 130, 247, 0.5)',
+            'rgba(52, 165, 104, 0.7)',
+            'transparent',
+            'rgba(255, 255, 255, 0.91)',
+            'rgba(57, 130, 247, 0.5)'
+        ]
+    },
+    blur: {
+        before: 50,
+        after: 70
+    }
+});
+
+function adicionarEfeitoBrilhoFlexivel(containerSelector, options = {}) {
+    // Verifica se o efeito já foi executado
+    const efeitoExecutado = GM_getValue('efeitoBrilhoExecutado', false);
+    if (efeitoExecutado) {
+        return; // Se já foi executado, retorna sem fazer nada
+    }
+
+    // Configurações padrão
+    const config = {
+        delay: options.delay || 1000,
+        duration: options.duration || 2000,
+        colors: {
+            before: options.colors?.before || [
+                'rgba(235, 20, 20, 0.3)',
+                'rgba(64, 255, 166, 0.3)',
+                'transparent',
+                'rgba(255, 40, 40, 0.6)'
+            ],
+            after: options.colors?.after || [
+                'rgba(57, 130, 247, 0.5)',
+                'rgba(52, 165, 104, 0.7)',
+                'rgba(57, 130, 247, 0.5)'
+            ]
+        },
+        blur: {
+            before: options.blur?.before || 30,
+            after: options.blur?.after || 50
+        }
+    };
+
+    // Obtém o container
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
+
+    // Cria os elementos de brilho
+    const glowBefore = document.createElement('div');
+    const glowAfter = document.createElement('div');
+
+    // Configura os elementos de brilho
+    glowBefore.className = 'glow-layer before';
+    glowAfter.className = 'glow-layer after';
+
+    // Adiciona os estilos necessários
+    const styleId = 'glow-effect-flexible-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.type = 'text/css';
+        style.innerHTML = `
+            .glow-layer {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                pointer-events: none;
+                z-index: -1;
+                border-radius: inherit;
+                opacity: 0;
+            }
+
+            .glow-layer.before {
+                animation: glow-reverse-flexible ${config.duration}ms linear;
+            }
+
+            .glow-layer.after {
+                animation: glow-flexible ${config.duration}ms linear;
+            }
+
+            @keyframes glow-flexible {
+                0% {
+                    opacity: 0;
+                    transform: scale(1);
+                    background-position: 0% 0%;
+                    background-size: 100% 100%;
+                }
+                5% {
+                    opacity: 1;
+                    transform: scale(1.1);
+                    background-position: 100% 0%;
+                    background-size: 150% 150%;
+                }
+                15% {
+                    opacity: 0.8;
+                    transform: scale(1.05);
+                    background-position: 50% 100%;
+                    background-size: 180% 180%;
+                }
+                35% {
+                    opacity: 0.9;
+                    transform: scale(1.03);
+                    background-position: 25% 75%;
+                    background-size: 200% 200%;
+                }
+                65% {
+                    opacity: 0.7;
+                    transform: scale(1.04);
+                    background-position: 85% 15%;
+                    background-size: 220% 220%;
+                }
+                85% {
+                    opacity: 0.5;
+                    transform: scale(1.02);
+                    background-position: 35% 65%;
+                    background-size: 180% 180%;
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1);
+                    background-position: 0% 0%;
+                    background-size: 100% 100%;
+                }
+            }
+
+            @keyframes glow-reverse-flexible {
+                0% {
+                    opacity: 0;
+                    transform: scale(1);
+                    background-position: 0% 0%;
+                    background-size: 100% 100%;
+                }
+                5% {
+                    opacity: 0.9;
+                    transform: scale(1.08);
+                    background-position: 0% 100%;
+                    background-size: 160% 160%;
+                }
+                20% {
+                    opacity: 1;
+                    transform: scale(1.06);
+                    background-position: 100% 50%;
+                    background-size: 190% 190%;
+                }
+                45% {
+                    opacity: 0.8;
+                    transform: scale(1.04);
+                    background-position: 75% 25%;
+                    background-size: 220% 220%;
+                }
+                75% {
+                    opacity: 0.6;
+                    transform: scale(1.03);
+                    background-position: 15% 85%;
+                    background-size: 250% 250%;
+                }
+                90% {
+                    opacity: 0.3;
+                    transform: scale(1.01);
+                    background-position: 65% 35%;
+                    background-size: 280% 280%;
+                }
+                100% {
+                    opacity: 0;
+                    transform: scale(1);
+                    background-position: 200% 200%;
+                    background-size: 300% 300%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Configura os estilos específicos para este container
+    glowBefore.style.background = `conic-gradient(from 0deg, ${config.colors.before.join(',')})`;
+    glowBefore.style.filter = `blur(${config.blur.before}px)`;
+    glowAfter.style.background = `conic-gradient(from 0deg, ${config.colors.after.join(',')})`;
+    glowAfter.style.filter = `blur(${config.blur.after}px)`;
+
+   // Adiciona os elementos de brilho ao container
+    setTimeout(() => {
+    container.appendChild(glowBefore);
+    container.appendChild(glowAfter);
+    }, config.delay);
+
+    // Após a animação terminar, marca o efeito como executado
+    setTimeout(() => {
+        glowBefore.remove();
+        glowAfter.remove();
+        GM_setValue('efeitoBrilhoExecutado', true);
+    }, config.duration+config.delay);
 }
