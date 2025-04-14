@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.3.1
+// @version       3.3.3
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -748,7 +748,7 @@ async function preencherFormulario(codhistorico, index) {
         iframeDoc.getElementById("vGEDHISTANO").value = coluna[0][0] || "";
         iframeDoc.getElementById("vGEDSERIECOD").value = coluna[0][1] || "";
         iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
-        if (coluna[1][2]) {iframeDoc.getElementById("vGEDHISTOBS").textContent = coluna[1][2];}
+        if (coluna[1][2]) {iframeDoc.getElementById("vGEDHISTOBS").textContent = decodeURIComponent(coluna[1][2]);}
         iframeDoc.getElementById("vGEDHISTNOMLOT").setAttribute("value", coluna[0][2] || "");
         iframeDoc.getElementById("vGEDHISTCIDID").setAttribute("value", coluna[0][3] || "");
 
