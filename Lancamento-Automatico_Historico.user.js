@@ -7,6 +7,8 @@
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
 // @match         http://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
 // @grant         GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
 // @updateURL     https://raw.githubusercontent.com/Jhonatan-Aquino/Lanca-Historico-GED/main/Lancamento-Automatico_Historico.user.js
 // @downloadURL   https://raw.githubusercontent.com/Jhonatan-Aquino/Lanca-Historico-GED/main/Lancamento-Automatico_Historico.user.js
 // @require       https://code.jquery.com/jquery-3.6.0.min.js
