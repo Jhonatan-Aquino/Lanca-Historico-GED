@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.3
+// @version       3.3.1
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -826,7 +826,7 @@ async function preencherFormulario(codhistorico, index) {
             selectArea = null;
             selectDisciplina = null;
             elemento = null;
-            await esperar(900);
+            await esperar(2000);
 
         }
 
