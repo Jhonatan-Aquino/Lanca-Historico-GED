@@ -2,7 +2,7 @@
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
 // @version       3.3.9
-// @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
+// @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
 // @match         http://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
