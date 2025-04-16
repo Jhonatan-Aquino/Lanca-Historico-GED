@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.3.5
+// @version       3.3.9
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Excel/Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -13,6 +13,7 @@
 // @downloadURL   https://raw.githubusercontent.com/Jhonatan-Aquino/Lanca-Historico-GED/main/Lancamento-Automatico_Historico.user.js
 // @require       https://code.jquery.com/jquery-3.6.0.min.js
 // ==/UserScript==
+
 
 
 // Carrega jQuery
@@ -179,13 +180,15 @@
             position: absolute;
             z-index: 2002;
             padding: 5px;
-            top: -45px;
-            height: 25px;
+            top: -5px;
+            min-height: 25px;
             min-width: 340px;
             font-size: 14px;
             font-weight: normal;
             line-height: 25px;
             display: none;
+            margin-left: -10px;
+            transform: translateY(-100%);
         }
 
         /* Estados de altura */
@@ -272,6 +275,9 @@ var Mxhistorico = [];
 
 // Adiciona no início do script, após as declarações de variáveis globais
 var permissoesHistorico = new Map();
+
+// Versão mínima requerida da planilha
+const VERSAO_MINIMA_PLANILHA = "1.5";
 
 // Adiciona funções para manipular cookies (MOVER PARA ANTES DA CRIAÇÃO DO BOTÃO)
 function setCookie(name, value, days) {
@@ -369,7 +375,7 @@ divCredit.innerHTML = `
 </svg>
   <div class="divseletor">
     <h3>Cole abaixo os dados do histórico<br>gerados pela planilha do Drive!</h3>
-    <span style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">clique aqui para acessar o modelo.</a></span><br><br>
+    <span style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://docs.google.com/spreadsheets/d/1GU7c9Xbfx5oIhogx-MXACMV1FOtHPLS4DWQF9hPN8TU/edit?usp=sharing">clique aqui para acessar o modelo.</a></span><br><br>
     <br>
     <textarea id="TEXTAREACSV" rows="10" cols="50" placeholder="Cole aqui os dados gerados na planilha..."></textarea>
     <br><br>
@@ -379,7 +385,7 @@ divCredit.innerHTML = `
   <div class='divcarregando'><p style='font-weight:bold;font-size:20pt; line-height:0px; margin-bottom:20px; font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>AGUARDE!</p><p style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;' >estou inserindo o seu histórico...</p><button id="loadingBtn" onclick="startLoading()">0%</button></div>
   <div class='divbotoes' style='display:none'></div><br>
   <div class="divajuda"><h3 style="font-size:15pt;text-align:center; line-height: 10px;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;">Como usar?</h3>
-  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1oZ_UxN_q1TAKS2OpZewZwREdslyWKm6FrrGl4UWmjQ8/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.<em> A Formula <b>não funciona</b> se você baixar a planilha e tentar usar no Excel!</em></p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br><br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
+  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1GU7c9Xbfx5oIhogx-MXACMV1FOtHPLS4DWQF9hPN8TU/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.<em> A Formula <b>não funciona</b> se você baixar a planilha e tentar usar no Excel!</em></p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br><br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
 <p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p><br></div>
   <div><span style='font-size:8pt;font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'><a href="https://github.com/Jhonatan-Aquino/" target="_blank" style="text-color:rgb(71, 78, 104) !important;  text-decoration: none !important;">< Jhonatan Aquino /></a></span>
 </div>
@@ -434,37 +440,6 @@ function ajuda() {
     $('#btnvoltar').slideDown(500, 'swing');
 }
 
-// Função para ler o arquivo CSV selecionado
-function lerCSV() {
-    var input = document.getElementById('csvFileInput');
-    var file = input.files[0];
-    if (!file) {
-        alert("Selecione um arquivo CSV primeiro!");
-        return;
-    }
-
-    var reader = new FileReader();
-    reader.onload = function(event) {
-        var csvData = event.target.result;
-        processarCSV(csvData);
-    };
-    reader.readAsText(file);
-}
-
-// Processa os dados do CSV e organiza em matriz
-function processarCSV(csvData) {
-    var linhas = csvData.split("\n").map(linha => linha.split(","));
-    Mxhistorico = []; // Limpa a matriz antes de preencher
-
-    // Organiza os dados do CSV em colunas de 4 elementos
-    for (let col = 0; col < linhas[0].length - 1; col += 4) {
-        let colunaMx = linhas.map(linha => [linha[col], linha[col + 1], linha[col + 2], linha[col + 3]]);
-        Mxhistorico.push(colunaMx);
-    }
-
-    criarBotoesHistorico();
-    verificanomeano();
-}
 
 // Função para processar os dados colados na textarea
 function processarTextoCSV() {
@@ -478,10 +453,41 @@ function processarTextoCSV() {
     // Divide o texto em linhas e remove as vazias
     var linhas = texto.split("\n").map(linha => linha.trim()).filter(linha => linha !== "");
 
+    // Verifica a versão da planilha
+    const primeiraLinha = linhas[0].split(",");
+    const ultimoElemento = primeiraLinha[primeiraLinha.length - 1].trim();
+
+    // Verifica se a primeira linha tem pelo menos uma coluna
+    if (primeiraLinha.length === 0) {
+        exibirLog("Erro: Dados inválidos. A planilha está vazia.", 13000, '#FF4B40');
+        return;
+    }
+
+    // Verifica se o último elemento contém o prefixo #v
+    if (!ultimoElemento.startsWith("#v")) {
+        exibirLog(`Erro: Você usou uma versão muito antiga da Planilha modelo para gerar os dados! Crie uma nova cópia da planilha modelo pelo link.`, 13000, '#FF4B40');
+        return;
+    }
+
+    // Extrai a versão removendo o prefixo #v
+    const versaoPlanilha = ultimoElemento.substring(2);
+
+    // Verifica se a versão da planilha é válida
+    if (!versaoPlanilha || isNaN(parseFloat(versaoPlanilha))) {
+        exibirLog(`Erro: Você usou uma versão muito antiga da Planilha modelo para gerar os dados! Crie uma nova cópia da planilha modelo pelo link.`, 13000, '#FF4B40');
+        return;
+    }
+
+    // Compara as versões
+    if (parseFloat(versaoPlanilha) < parseFloat(VERSAO_MINIMA_PLANILHA)) {
+        exibirLog(`Erro: Você usou uma versão muito antiga da Planilha modelo para gerar os dados! Crie uma nova cópia da planilha modelo pelo link.`, 13000, '#FF4B40');
+        return;
+    }
+
     Mxhistorico = []; // Limpa a matriz antes de preencher
 
-    // Organiza os dados do CSV em colunas de 4 elementos
-    for (let col = 0; col < linhas[0].split(",").length - 1; col += 4) {
+    // Organiza os dados do CSV em colunas de 4 elementos, ignorando a coluna de versão
+    for (let col = 0; col < primeiraLinha.length - 1; col += 4) {
         let colunaMx = linhas.map(linha => {
             let valores = linha.split(",");
             return [
@@ -508,8 +514,11 @@ async function verificanomeano() {
     document.querySelector('.btnConsultar').click();
 
     ifrIframe2.src = "http://sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx?" + codaluno;
+
     ifrIframe2.addEventListener("load", async function() {
-        await esperar(1000);
+
+        let iframeDoc2 = ifrIframe2.contentDocument || ifrIframe2.contentWindow.document;
+        await aguardarCarregamentoCompleto(document);
 
         let vetor = [];
         let i = 1;
@@ -518,17 +527,17 @@ async function verificanomeano() {
         while (true) {
             let span = document.getElementById('span_vDESC_GEDHISTANO_000' + String(i));
             if (span === null) break;
-            
+
             // Verifica a permissão de alteração
             let imgPermissao = document.getElementById('vALTERAR_000' + String(i));
             let temPermissao = imgPermissao && !imgPermissao.src.includes('naoalterar.gif') ? 1 : 0;
-            
+
             // Armazena a permissão no Map usando o código do histórico como chave
             let codHistorico = document.getElementById('span_vGRIDGEDHISTCOD_000' + String(i))?.innerHTML.replace(/\s+/g, '');
             if (codHistorico) {
                 permissoesHistorico.set(codHistorico, temPermissao);
             }
-            
+
             vetor.push([span.innerHTML, i, temPermissao]);
             i++;
         }
@@ -544,7 +553,7 @@ async function verificanomeano() {
                 input.classList.add('btninserido');
                 input.setAttribute('data-index', iValue);
                 input.setAttribute('data-perm', permissao);
-                
+
                 if (permissao === 0) {
                     input.title = 'Você não tem permissão para alterar este histórico';
                 }
@@ -570,9 +579,9 @@ async function criarBotoesHistorico() {
         botao.setAttribute('value', 'Inserir histórico de ' + ano);
         botao.setAttribute('data-index', index);
         botao.setAttribute('data-ano', ano);
-        botao.addEventListener("click", function() { 
+        botao.addEventListener("click", function() {
             let permissao = this.getAttribute('data-perm');
-            inserir(this, index, permissao ? parseInt(permissao) : undefined); 
+            inserir(this, index, permissao ? parseInt(permissao) : undefined);
         });
         divBotoes.appendChild(botao);
         divBotoes.appendChild(document.createElement('br'));
@@ -598,7 +607,7 @@ async function inserir(bot, index, permissao) {
 
         let novoNo = document.createElement('div');
         novoNo.setAttribute('class', 'mensagem');
-        
+
         if (permissao === 0) {
             novoNo.innerHTML = `
                 <p style="font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important; font-weight:normal;">
@@ -698,6 +707,38 @@ function exibirLog(texto, tempo, cor = "#087EFF") {
     setTimeout(() => {$('.divlog').fadeOut(300);}, tempo);
 }
 
+  // Função para verificar se a página está carregando
+  const aguardarCarregamentoCompleto = async (local) => {
+    return new Promise((resolver) => {
+        let tempoLimiteAtingido = false;
+        const tempoMaximoEspera = 15000; // 15 segundos
+        const tempoInicio = Date.now();
+
+        const verificarCarregamento = () => {
+            const elementoCarregamento = local.getElementById('gx_ajax_notification');
+            const tempoAtual = Date.now();
+            const tempoDecorrido = tempoAtual - tempoInicio;
+
+            // Verifica se o tempo máximo foi atingido
+            if (tempoDecorrido >= tempoMaximoEspera && !tempoLimiteAtingido) {
+                tempoLimiteAtingido = true;
+                exibirLog('Algo deu errado durante o carregamento. Verifique o sistema e tente novamente!', 4000, '#FF4B40');
+                resolver(); // Resolve a Promise mesmo se o tempo esgotar
+                return;
+            }
+
+            // Se o elemento não existe OU está oculto (display: none), considera carregamento concluído
+            if (!elementoCarregamento || elementoCarregamento.style.display === 'none') {
+                setTimeout(resolver, 1000); // Espera 1 segundo adicional para garantir
+            } else {
+                setTimeout(verificarCarregamento, 1000); // Continua verificando
+            }
+        };
+
+        verificarCarregamento();
+    });
+};
+
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
     // Verifica a permissão real antes de prosseguir
@@ -734,6 +775,17 @@ async function preencherFormulario(codhistorico, index) {
 
     let codaluno = coluna[1][0];
     let tipodeavaliacao = (!coluna[2] || !coluna[2][2] || coluna[2][2].trim() === "" || /\d/.test(coluna[2][2])) ? "NOTA" : "CONCEITO";
+
+    // Verifica se a coluna[1][3] tem conteúdo para determinar o tipo de avaliação e lançamento
+    if (coluna[1][3] && coluna[1][3].trim() !== "") {
+        tipodeavaliacao = "CONCEITO";
+        var tipolancamento = "A";
+        exibirLog('Lançamento de Conceito por Área de Conhecimento!', 3000);
+    } else {
+        var tipolancamento = "D";
+        exibirLog('Lançamento de Nota/Conceito por Disciplina!', 3000);
+    }
+
     let codigolotacao = document.getElementById("span_vGERLOTCOD").textContent;
     ifrIframe1.src = codhistorico == 1
         ? `http://sigeduca.seduc.mt.gov.br/ged/HWGedValidacaoHistorico.aspx?${codhistorico},${codaluno},,0,HWMGedHistorico`
@@ -762,19 +814,78 @@ async function preencherFormulario(codhistorico, index) {
         await esperarCarregarIframe(ifrIframe1, "#vGEDHISTTPO");
 
         let selectTipo = iframeDoc.getElementById('vGEDHISTTPO');
-        selectTipo.value = "D";
+        selectTipo.value = tipolancamento;
         selectTipo.dispatchEvent(changeEvent);
 
+        // Se for lançamento por área de conhecimento
+        if (tipolancamento === "A") {
+            await aguardarCarregamentoCompleto(iframeDoc);
+            await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
+
+            // Extrai o código da área e o conceito da coluna[1][3]
+            let [codigoArea, conceito] = coluna[1][3].replace(/[\[\]]/g, '').split(';');
+
+            // Preenche o código da área
+            let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
+            selectArea.value = codigoArea;
+            selectArea.dispatchEvent(changeEvent);
+            atualizarProgresso(40);
+
+            await esperar(1000);
+
+            // Preenche o conceito
+            let inputConceito = iframeDoc.getElementById('vGEDHISTAREACONSGL');
+            inputConceito.value = conceito;
+            inputConceito.dispatchEvent(changeEvent);
+            atualizarProgresso(40);
+
+            await esperar(1000);
+            iframeDoc.querySelector(".btnIncluir")?.click();
+            atualizarProgresso(10);
+
+            if (coluna[1][1]){
+                await aguardarCarregamentoCompleto(iframeDoc);
+                iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(coluna[1][1]);
+                iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+                exibirLog('Corrigindo a carga horária!', 2000);
+                iframeDoc.querySelector(".btnIncluir")?.click();
+                }
+
+                await aguardarCarregamentoCompleto(iframeDoc);
+
+                $('.divcarregando').slideUp(1000);
+                btn.classList.remove("loading");
+                exibirLog('CONCLUÍDO!', 4000,'#34A568');
+                processarTextoCSV();
+                tipodeavaliacao = null;
+                coluna = null;
+                codaluno = null;
+                selectAvaliacao = null;
+                tipolancamento = null;
+                selectTipo = null;
+
+
+                await esperar(3000);
+
+                document.getElementById("loadingBtn").innerText = "0%";
+                let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
+                ifrIframe1.src = "blank";
+                iframe.remove();
+
+            return;
+        }
+
+        // Se for lançamento por disciplina, continua com o código existente
         let tamanhocoluna = coluna.length;
         atualizarProgresso(5);
         let evolucao = 85 / (tamanhocoluna - 2);
         iframeDoc.querySelector(".btnIncluir")?.click();
-        await esperar(2000);
+        await aguardarCarregamentoCompleto(iframeDoc);
+
         if(!coluna[2]){atualizarProgresso(100);}
 
         for (let linha = 2; linha < tamanhocoluna; linha++) {
-
-            await esperar(2000);
+            await aguardarCarregamentoCompleto(iframeDoc);
             await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
 
             let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
@@ -783,6 +894,7 @@ async function preencherFormulario(codhistorico, index) {
             atualizarProgresso(evolucao / 5);
 
             await esperar(500);
+            await aguardarCarregamentoCompleto(iframeDoc);
             await esperarCarregarIframe(ifrIframe1, "#vGEDHISTDISCCOD");
 
             let selectDisciplina = iframeDoc.getElementById('vGEDHISTDISCCOD');
@@ -826,42 +938,41 @@ async function preencherFormulario(codhistorico, index) {
             selectArea = null;
             selectDisciplina = null;
             elemento = null;
-            await esperar(2000);
+            await aguardarCarregamentoCompleto(iframeDoc);
 
         }
-
         if (coluna[1][1]){
-        iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(coluna[1][1]);
-        iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
-        exibirLog('Corrigindo a carga horária!', 2000);
-        await esperar(600);
-        iframeDoc.querySelector(".btnIncluir")?.click();
-        }
+            await aguardarCarregamentoCompleto(iframeDoc);
+            iframeDoc.getElementById("vGEDHISTCRGHOR").value  = decodeURIComponent(coluna[1][1]);
+            iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+            exibirLog('Corrigindo a carga horária!', 2000);
+            await esperar(600);
+            iframeDoc.querySelector(".btnIncluir")?.click();
+            }
 
-        await esperar(3000);
+            await aguardarCarregamentoCompleto(iframeDoc);
 
-        $('.divcarregando').slideUp(1000);
-        btn.classList.remove("loading");
-        exibirLog('CONCLUÍDO!', 4000,'#34A568');
-        processarTextoCSV();
-        tipodeavaliacao = null;
-        coluna = null;
-        codaluno = null;
-        tamanhocoluna = null;
-        evolucao = null;
-        nomedadisciplina = null;
-        optionconceito = null;
-        selectAvaliacao = null;
-        selectTipo = null;
+            $('.divcarregando').slideUp(1000);
+            btn.classList.remove("loading");
+            await aguardarCarregamentoCompleto(iframeDoc);
+            exibirLog('CONCLUÍDO!', 4000,'#34A568');
+            processarTextoCSV();
+            tipodeavaliacao = null;
+            coluna = null;
+            codaluno = null;
+            tamanhocoluna = null;
+            evolucao = null;
+            nomedadisciplina = null;
+            optionconceito = null;
+            selectAvaliacao = null;
+            selectTipo = null;
 
+            document.getElementById("loadingBtn").innerText = "0%";
+            let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
+            ifrIframe1.src = "blank";
+            iframe.remove();
+});
 
-        await esperar(3000);
-
-        document.getElementById("loadingBtn").innerText = "0%";
-        let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
-        ifrIframe1.src = "blank";
-        iframe.remove();
-    });
 }
 
 
