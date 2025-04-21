@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.3.9
+// @version       3.4
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -15,6 +15,92 @@
 // ==/UserScript==
 
 
+
+// Sistema de Log melhorado
+class LogManager {
+    constructor() {
+        this.queue = [];
+        this.isDisplaying = false;
+        this.lastMessage = '';
+        this.lastMessageTime = 0;
+    }
+
+    init() {
+        this.divLog = document.getElementById('divlog');
+        if (!this.divLog) {
+            console.warn('Elemento divlog não encontrado, criando...');
+            this.divLog = document.createElement('div');
+            this.divLog.id = 'divlog';
+            this.divLog.className = 'divlog';
+            // Adiciona estilos para preservar quebras de linha
+            this.divLog.style.cssText = `
+                white-space: pre-line;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                line-height: 1.5;
+                padding: 10px;
+                text-align: left;
+            `;
+            document.body.appendChild(this.divLog);
+        }
+    }
+
+    async addLog(mensagem, tempo = 3000, cor = '#087eff') {
+        if (!this.divLog) {
+            this.init();
+        }
+
+        const now = Date.now();
+        if (this.lastMessage === mensagem && (now - this.lastMessageTime) < 2000) {
+            return;
+        }
+
+        this.lastMessage = mensagem;
+        this.lastMessageTime = now;
+        this.queue.push({ mensagem, tempo, cor });
+
+        if (!this.isDisplaying) {
+            this.processQueue();
+        }
+    }
+
+    async processQueue() {
+        if (!this.divLog) {
+            this.init();
+        }
+
+        if (this.queue.length === 0) {
+            this.isDisplaying = false;
+            return;
+        }
+
+        this.isDisplaying = true;
+        const { mensagem, tempo, cor } = this.queue.shift();
+
+        this.divLog.style.display = 'block';
+        this.divLog.style.color = cor;
+        // Usa textContent e substitui \n por <br> para garantir quebras de linha
+        this.divLog.innerHTML = mensagem.replace(/\n/g, '<br>');
+
+        await new Promise(resolve => setTimeout(resolve, tempo));
+        this.divLog.style.display = 'none';
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+        this.processQueue();
+    }
+}
+
+// Criar instância do LogManager
+const logManager = new LogManager();
+
+// Função auxiliar de exibição de log
+function exibirLog(mensagem, tempo = 3000, cor = '#087eff') {
+    if (logManager) {
+        logManager.addLog(mensagem, tempo, cor);
+    } else {
+        console.warn('LogManager não está disponível');
+    }
+}
 
 // Carrega jQuery
 (function() {
@@ -386,9 +472,23 @@ divCredit.innerHTML = `
   <div class='divbotoes' style='display:none'></div><br>
   <div class="divajuda"><h3 style="font-size:15pt;text-align:center; line-height: 10px;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;">Como usar?</h3>
   	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1GU7c9Xbfx5oIhogx-MXACMV1FOtHPLS4DWQF9hPN8TU/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.<em> A Formula <b>não funciona</b> se você baixar a planilha e tentar usar no Excel!</em></p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br><br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
-<p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p><br></div>
-  <div><span style='font-size:8pt;font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'><a href="https://github.com/Jhonatan-Aquino/" target="_blank" style="text-color:rgb(71, 78, 104) !important;  text-decoration: none !important;">< Jhonatan Aquino /></a></span>
+<p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p>
+  <div style="text-align: right; margin-top: 5px;">
+      <a href="mailto:jhonatan.escola33@gmail.com?subject=Relato%20de%20Problema%20-%20${GM_info.script.name}&body=Olá,%0A%0AEncontrei%20um%20problema%20no%20script%20${GM_info.script.name}%20versão%20${GM_info.script.version}%0A%0ADetalhes%20do%20problema:%0A%0A1.%20O%20que%20aconteceu?%0A%0A2.%20O%20que%20você%20estava%20fazendo%20quando%20o%20problema%20aconteceu?%0A%0A3.%20Mensagens%20de%20erro%20(se%20houver):%0A%0A" style="font-size: 9pt; text-decoration: none; color: #666; display: inline-flex; align-items: center;">
+          Relatar um problema
+          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="16" height="16" viewBox="0 0 256 256" style="margin-left: 5px;" xml:space="preserve">
+            <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+              <path d="M 45 0 C 20.187 0 0 20.187 0 45 S 20.187 90 45 90 s 45 -20.187 45 -45 S 69.813 0 45 0 z M 45 82 C 24.598 82 8 65.402 8 45 s 16.598 -37 37 -37 s 37 16.598 37 37 S 65.402 82 45 82 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+              <path d="M 45 64.393 c -2.209 0 -4 1.791 -4 4 V 71 c 0 2.209 1.791 4 4 4 s 4 -1.791 4 -4 v -2.607 C 49 66.184 47.209 64.393 45 64.393 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+              <path d="M 45 15 c -2.209 0 -4 1.791 -4 4 v 35.393 c 0 2.209 1.791 4 4 4 s 4 -1.791 4 -4 V 19 C 49 16.791 47.209 15 45 15 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+            </g>
+          </svg>
+      </a>
+  </div>
 </div>
+  <div><span style='font-size:8pt;font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'><a href="https://github.com/Jhonatan-Aquino/" target="_blank" style="text-color:rgb(71, 78, 104) !important;  text-decoration: none !important;">< Jhonatan Aquino /></a></span>
+  </div>
+
   <div><span style='font-size:8pt;font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>${GM_info.script.name} v${GM_info.script.version}</span></div>
   <svg xmlns="http://www.w3.org/2000/svg" title="Ajuda" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="20" height="20" class="btnajuda" id="btnajuda" viewBox="0 0 256 256" style=" margin: 10px;position: absolute;left: 0; bottom: 0;" xml:space="preserve"><defs></defs>
 <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
@@ -525,15 +625,15 @@ async function verificanomeano() {
 
         // Obtém os anos disponíveis no histórico do aluno
         while (true) {
-            let span = document.getElementById('span_vDESC_GEDHISTANO_000' + String(i));
+            let span = document.getElementById('span_vDESC_GEDHISTANO_' + String(i).padStart(4, '0'));
             if (span === null) break;
 
             // Verifica a permissão de alteração
-            let imgPermissao = document.getElementById('vALTERAR_000' + String(i));
+            let imgPermissao = document.getElementById('vALTERAR_' + String(i).padStart(4, '0'));
             let temPermissao = imgPermissao && !imgPermissao.src.includes('naoalterar.gif') ? 1 : 0;
 
             // Armazena a permissão no Map usando o código do histórico como chave
-            let codHistorico = document.getElementById('span_vGRIDGEDHISTCOD_000' + String(i))?.innerHTML.replace(/\s+/g, '');
+            let codHistorico = document.getElementById('span_vGRIDGEDHISTCOD_' + String(i).padStart(4, '0'))?.innerHTML.replace(/\s+/g, '');
             if (codHistorico) {
                 permissoesHistorico.set(codHistorico, temPermissao);
             }
@@ -638,21 +738,6 @@ async function inserir(bot, index, permissao) {
     }
 }
 
-// Função para exibir a matriz de dados
-function exibirMatriz(matriz) {
-    var outputDiv = document.querySelector('.divbotoes');
-    let html = "<h3>Matriz Gerada:</h3>";
-
-    html += matriz.map((coluna, index) => {
-        let colText = `Coluna ${index + 1}:<br>`;
-        colText += coluna.map(linha => Array.isArray(linha) ? `[${linha.join(" | ")}]` : linha).join(" | ");
-        return `<p>${colText}</p>`;
-    }).join("");
-
-    outputDiv.innerHTML = html;
-    console.log("Matriz gerada:", matriz);
-}
-
 // Função para arredondar para cima se a parte decimal for maior que 0.7
 function arredondarParaCimaSeMaiorQueMeia(numero) {
     return numero % 1 > 0.7 ? Math.ceil(numero) : Math.floor(numero);
@@ -679,7 +764,7 @@ function esperarCarregarIframe(iframe, seletorSelect) {
             if (select && select.options.length > 1) {
                 resolve();
             } else {
-                await esperar(3000);
+                await esperar(1000);
                 select = null;
                 checkOpcoesExist();
             }
@@ -696,15 +781,6 @@ async function deletarmsg() {
         await esperar(500);
         mensagem.remove();
     }
-}
-
-//Funçao para exibir mensagem curta na div de LOG
-function exibirLog(texto, tempo, cor = "#087EFF") {
-    let divLog = document.getElementById("divlog");
-    divLog.innerText = texto;
-    divLog.style.color = cor; // Define a cor do texto
-    $('.divlog').fadeIn(300);
-    setTimeout(() => {$('.divlog').fadeOut(300);}, tempo);
 }
 
   // Função para verificar se a página está carregando
@@ -731,6 +807,7 @@ function exibirLog(texto, tempo, cor = "#087EFF") {
             if (!elementoCarregamento || elementoCarregamento.style.display === 'none') {
                 setTimeout(resolver, 1000); // Espera 1 segundo adicional para garantir
             } else {
+                console.log('AGUARDANDO CARREGAMENTO...');
                 setTimeout(verificarCarregamento, 1000); // Continua verificando
             }
         };
@@ -738,19 +815,19 @@ function exibirLog(texto, tempo, cor = "#087EFF") {
         verificarCarregamento();
     });
 };
-
+let ErrosInserir = [];
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
     // Verifica a permissão real antes de prosseguir
     if (codhistorico !== 1) { // Se não for um novo histórico
         let permissaoReal = permissoesHistorico.get(codhistorico);
         if (permissaoReal === 0) {
-            exibirLog('Você não tem permissão para alterar este histórico!', 3000, '#FF4B40');
+            exibirLog('Você não tem permissão para alterar este histórico!', 5000, '#FF4B40');
             voltar();
             return;
         }
     }
-
+    ErrosInserir = [];
     exibirLog('Iniciando!', 3000);
     $('.btnajuda').fadeOut(500);
     $('.btnscontrole').fadeOut(500);
@@ -764,6 +841,8 @@ async function preencherFormulario(codhistorico, index) {
 
     if (!Mxhistorico || !Mxhistorico[index]) {
         console.error("Índice inválido ou matriz não definida.");
+        exibirLog('O sistema encontrou um erro ao processar o histórico escolar! Revise os dados da planilha modelo e tente novamente!', 5000, '#FF4B40');
+        voltar();
         return;
     }
 
@@ -777,13 +856,21 @@ async function preencherFormulario(codhistorico, index) {
     let tipodeavaliacao = (!coluna[2] || !coluna[2][2] || coluna[2][2].trim() === "" || /\d/.test(coluna[2][2])) ? "NOTA" : "CONCEITO";
 
     // Verifica se a coluna[1][3] tem conteúdo para determinar o tipo de avaliação e lançamento
-    if (coluna[1][3] && coluna[1][3].trim() !== "") {
+    if (coluna[1][3]==null) {
+        exibirLog('O sistema encontrou um erro ao processar o histórico escolar! Revise o tipo de avaliação e tente novamente!', 5000, '#FF4B40');
+        voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+        setTimeout(() => {return;}, 5000);
+    } else if (coluna[1][3].trim() !== "") {
         tipodeavaliacao = "CONCEITO";
         var tipolancamento = "A";
         exibirLog('Lançamento de Conceito por Área de Conhecimento!', 3000);
     } else {
         var tipolancamento = "D";
-        exibirLog('Lançamento de Nota/Conceito por Disciplina!', 3000);
+        if (tipodeavaliacao === "CONCEITO") {
+            exibirLog('Lançamento de Conceito por Disciplina!', 3000);
+        } else {
+            exibirLog('Lançamento de Nota por Disciplina!', 3000);
+        }
     }
 
     let codigolotacao = document.getElementById("span_vGERLOTCOD").textContent;
@@ -797,25 +884,41 @@ async function preencherFormulario(codhistorico, index) {
         let iframe = parent.document.querySelector("iframe#iframe1");
         let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-        iframeDoc.getElementById("vGEDHISTANO").value = coluna[0][0] || "";
-        iframeDoc.getElementById("vGEDSERIECOD").value = coluna[0][1] || "";
-        iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
+        await aguardarCarregamentoCompleto(iframeDoc);
+        try {
+            iframeDoc.getElementById("vGEDHISTANO").value = coluna[0][0] || "";
+            iframeDoc.getElementById("vGEDSERIECOD").value = coluna[0][1] || "";
+            iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
         if (coluna[1][2]) {iframeDoc.getElementById("vGEDHISTOBS").textContent = decodeURIComponent(coluna[1][2]);}
         iframeDoc.getElementById("vGEDHISTNOMLOT").setAttribute("value", coluna[0][2] || "");
         iframeDoc.getElementById("vGEDHISTCIDID").setAttribute("value", coluna[0][3] || "");
-
+        } catch (erro) {
+            exibirLog('O sistema encontrou um erro! Revise o cabeçalho do histórico escolar e tente novamente!', 5000, '#FF4B40');
+            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+            setTimeout(() => {return;}, 5000);
+        }
         const changeEvent = new Event('change');
-
+        try {
         let selectAvaliacao = iframeDoc.getElementById('vGEDHISTFRMAVA');
         selectAvaliacao.value = tipodeavaliacao === "NOTA" ? "3" : "2";
         selectAvaliacao.dispatchEvent(changeEvent);
-
+        } catch (erro) {
+            exibirLog('O sistema encontrou um erro ao tentar selecionar o tipo de avaliação!', 5000, '#FF4B40');
+            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+            setTimeout(() => {return;}, 5000);
+        }
         await esperar(1000);
         await esperarCarregarIframe(ifrIframe1, "#vGEDHISTTPO");
 
+        try {
         let selectTipo = iframeDoc.getElementById('vGEDHISTTPO');
         selectTipo.value = tipolancamento;
         selectTipo.dispatchEvent(changeEvent);
+        } catch (erro) {
+            exibirLog('O sistema encontrou um erro ao tentar selecionar o tipo de lançamento!', 5000, '#FF4B40');
+            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+            setTimeout(() => {return;}, 5000);
+        }
 
         // Se for lançamento por área de conhecimento
         if (tipolancamento === "A") {
@@ -826,30 +929,49 @@ async function preencherFormulario(codhistorico, index) {
             let [codigoArea, conceito] = coluna[1][3].replace(/[\[\]]/g, '').split(';');
 
             // Preenche o código da área
+            try {
             let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
             selectArea.value = codigoArea;
             selectArea.dispatchEvent(changeEvent);
             atualizarProgresso(40);
-
-            await esperar(1000);
-
+            } catch (erro) {
+                exibirLog('A Área de Conhecimento informada não foi encontrada!', 5000, '#FF4B40');
+                voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+                setTimeout(() => {return;}, 5000);
+            }
+            await esperar(500);
+            try {
             // Preenche o conceito
             let inputConceito = iframeDoc.getElementById('vGEDHISTAREACONSGL');
             inputConceito.value = conceito;
             inputConceito.dispatchEvent(changeEvent);
             atualizarProgresso(40);
+            } catch (erro) {
+                exibirLog('O conceito informado não foi encontrado!', 5000, '#FF4B40');
+                voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
+                setTimeout(() => {return;}, 5000);
+            }
 
-            await esperar(1000);
+            await esperar(500);
             iframeDoc.querySelector(".btnIncluir")?.click();
-            atualizarProgresso(10);
+            await aguardarCarregamentoCompleto(iframeDoc);
+            let erros = verificarErrosIframe(iframeDoc);
+            if (erros) {
+                throw new Error(erros);
+            }else{
+                atualizarProgresso(10);
+            }
 
             if (coluna[1][1]){
+                try {
                 await aguardarCarregamentoCompleto(iframeDoc);
                 iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(coluna[1][1]);
                 iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
                 exibirLog('Corrigindo a carga horária!', 2000);
                 iframeDoc.querySelector(".btnIncluir")?.click();
-                }
+                } catch (erro) {
+                    exibirLog('O sistema encontrou um erro ao tentar corrigir a carga horária!', 5000, '#FF4B40');
+                }}
 
                 await aguardarCarregamentoCompleto(iframeDoc);
 
@@ -863,7 +985,7 @@ async function preencherFormulario(codhistorico, index) {
                 selectAvaliacao = null;
                 tipolancamento = null;
                 selectTipo = null;
-
+                erros = null;
 
                 await esperar(3000);
 
@@ -873,7 +995,7 @@ async function preencherFormulario(codhistorico, index) {
                 iframe.remove();
 
             return;
-        }
+            }
 
         // Se for lançamento por disciplina, continua com o código existente
         let tamanhocoluna = coluna.length;
@@ -881,73 +1003,116 @@ async function preencherFormulario(codhistorico, index) {
         let evolucao = 85 / (tamanhocoluna - 2);
         iframeDoc.querySelector(".btnIncluir")?.click();
         await aguardarCarregamentoCompleto(iframeDoc);
+        let erros = verificarErrosIframe(iframeDoc);
+        if (erros) {
+            exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + erros, 150000, '#FF4B40');
+            throw new Error(erros);
+        }
+        await aguardarCarregamentoCompleto(iframeDoc);
 
         if(!coluna[2]){atualizarProgresso(100);}
 
-        for (let linha = 2; linha < tamanhocoluna; linha++) {
-            await aguardarCarregamentoCompleto(iframeDoc);
-            await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
+            for (let linha = 2; linha < tamanhocoluna; linha++) {
+                try {
+                    await aguardarCarregamentoCompleto(iframeDoc);
+                    await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
 
-            let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
-            selectArea.value = coluna[linha][0] || "";
-            selectArea.dispatchEvent(changeEvent);
-            atualizarProgresso(evolucao / 5);
+                    try {
+                        let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
+                        selectArea.value = coluna[linha][0] || "";
+                        selectArea.dispatchEvent(changeEvent);
+                        atualizarProgresso(evolucao / 5);
+                    } catch (erro) {
+                        throw new Error('Área de Conhecimento não encontrada');
+                    }
+                    await esperar(500);
+                    await aguardarCarregamentoCompleto(iframeDoc);
+                    await esperarCarregarIframe(ifrIframe1, "#vGEDHISTDISCCOD");
 
-            await esperar(500);
-            await aguardarCarregamentoCompleto(iframeDoc);
-            await esperarCarregarIframe(ifrIframe1, "#vGEDHISTDISCCOD");
+                    try {
+                        let selectDisciplina = iframeDoc.getElementById('vGEDHISTDISCCOD');
+                        selectDisciplina.value = coluna[linha][1] || "";
+                        selectDisciplina.dispatchEvent(changeEvent);
+                        atualizarProgresso(evolucao / 5);
+                        var nomedadisciplina = selectDisciplina.querySelector('option[value="'+coluna[linha][1]+'"]').textContent;
+                    } catch (erro) {
+                        throw new Error('Disciplina não encontrada');
+                    }
 
-            let selectDisciplina = iframeDoc.getElementById('vGEDHISTDISCCOD');
-            selectDisciplina.value = coluna[linha][1] || "";
-            selectDisciplina.dispatchEvent(changeEvent);
-            atualizarProgresso(evolucao / 5);
+                    await esperar(500);
+                    let elemento = tipodeavaliacao === "NOTA"
+                        ? iframeDoc.getElementById("vGEDHISTDISCAVANOTA")
+                        : iframeDoc.getElementById("vGEDHISTDISCCONSGL");
 
-            var nomedadisciplina = selectDisciplina.querySelector('option[value="'+coluna[linha][1]+'"]').textContent;
-            await esperar(400);
-            await esperar(500);
-           let elemento = tipodeavaliacao === "NOTA"
-            ? iframeDoc.getElementById("vGEDHISTDISCAVANOTA")
-            : iframeDoc.getElementById("vGEDHISTDISCCONSGL");
-            elemento.value = tipodeavaliacao === "NOTA"
-            ? (coluna[linha][2] || "").replace(/\./g, ",")
-            : coluna[linha][2];
-            elemento.dispatchEvent(changeEvent);
+                    try {
+                        elemento.value = tipodeavaliacao === "NOTA"
+                            ? (coluna[linha][2] || "").replace(/\./g, ",")
+                            : coluna[linha][2];
+                        elemento.dispatchEvent(changeEvent);
+                    } catch (erro) {
+                        throw new Error('Erro ao tentar inserir a nota');
+                    }
+                    var optionconceito = tipodeavaliacao === "CONCEITO"
+                        ? elemento.querySelector('option[value="'+coluna[linha][2]+'"]')
+                        : "é nota";
+                    if(!optionconceito){
+                        throw new Error('Conceito não encontrado');
+                    }
 
-            var optionconceito = tipodeavaliacao === "CONCEITO"
-            ?elemento.querySelector('option[value="'+coluna[linha][2]+'"]')
-            :"é nota";
-            if(!optionconceito){
-                 exibirLog('Erro: Conceito informado não foi encontrado!', 20000,'#FF4B40');
-                voltar();
-                return;
+                    atualizarProgresso(evolucao / 5);
+
+                    await esperar(500);
+                    try {
+                        iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = coluna[linha][3];
+                        iframeDoc.getElementById("vGEDHISTDISCCRGHOR").dispatchEvent(changeEvent);
+                        atualizarProgresso(evolucao / 5);
+                    } catch (erro) {
+                        throw new Error('Erro ao tentar inserir a carga horária');
+                    }
+                    try {
+                        await esperar(1000);
+                        iframeDoc.querySelector(".btnIncluir")?.click();
+                        await aguardarCarregamentoCompleto(iframeDoc);
+                        let erros = verificarErrosIframe(iframeDoc);
+                        if (erros) {
+                            throw new Error(erros);
+                        }
+
+                        atualizarProgresso(evolucao / 5);
+                    } catch (erro) {
+                        throw new Error(erro.message);
+                    }
+                    //Exibir log da displina incluida
+                    exibirLog(nomedadisciplina + '  Inserido!', 1500);
+                    selectArea = null;
+                    selectDisciplina = null;
+                    erros = null;
+                    elemento = null;
+                    nomedadisciplina = null;
+                    await aguardarCarregamentoCompleto(iframeDoc);
+                } catch (erro) {
+                    // Registra o erro específico da linha
+                    exibirLog(`Erro ao inserir ${nomedadisciplina ? nomedadisciplina : `a disciplina ${coluna[linha][1]}`}!`, 4000, '#FF4B40');
+                    ErrosInserir.push(`Erro ao inserir ${nomedadisciplina ? nomedadisciplina : `a disciplina ${coluna[linha][1]}`}-${erro.message}`);
+                    nomedadisciplina = null;
+
+                    // Continua para a próxima linha
+                    continue;
+                }
+
             }
-
-            atualizarProgresso(evolucao / 5);
-
-            await esperar(500);
-            iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = coluna[linha][3];
-            iframeDoc.getElementById("vGEDHISTDISCCRGHOR").dispatchEvent(changeEvent);
-            atualizarProgresso(evolucao / 5);
-
-            await esperar(1000);
-            iframeDoc.querySelector(".btnIncluir")?.click();
-            atualizarProgresso(evolucao / 5);
-
-            //Exibir log da displina incluida
-            exibirLog(nomedadisciplina + '  Inserido!', 1500);
-            selectArea = null;
-            selectDisciplina = null;
-            elemento = null;
-            await aguardarCarregamentoCompleto(iframeDoc);
-
-        }
-        if (coluna[1][1]){
-            await aguardarCarregamentoCompleto(iframeDoc);
-            iframeDoc.getElementById("vGEDHISTCRGHOR").value  = decodeURIComponent(coluna[1][1]);
-            iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
-            exibirLog('Corrigindo a carga horária!', 2000);
-            await esperar(600);
-            iframeDoc.querySelector(".btnIncluir")?.click();
+            if (coluna[1][1]){
+                try {
+                    await aguardarCarregamentoCompleto(iframeDoc);
+                    iframeDoc.getElementById("vGEDHISTCRGHOR").value  = decodeURIComponent(coluna[1][1]);
+                    iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+                    exibirLog('Corrigindo a carga horária!', 1000);
+                    await esperar(600);
+                iframeDoc.querySelector(".btnIncluir")?.click();
+                } catch (erro) {
+                    ErrosInserir.push(`Erro ao tentar corrigir a carga horária do histórico escolar. ${erro.message}`);
+                    exibirLog('Erro ao tentar corrigir a carga horária do histórico escolar!', 5000, '#FF4B40');
+                }
             }
 
             await aguardarCarregamentoCompleto(iframeDoc);
@@ -955,7 +1120,13 @@ async function preencherFormulario(codhistorico, index) {
             $('.divcarregando').slideUp(1000);
             btn.classList.remove("loading");
             await aguardarCarregamentoCompleto(iframeDoc);
-            exibirLog('CONCLUÍDO!', 4000,'#34A568');
+
+            if (ErrosInserir.length > 0) {
+                exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + ErrosInserir.join('\n'), 150000, '#FF4B40');
+            } else {
+                exibirLog('CONCLUÍDO!', 4000,'#34A568');
+            }
+
             processarTextoCSV();
             tipodeavaliacao = null;
             coluna = null;
@@ -965,16 +1136,30 @@ async function preencherFormulario(codhistorico, index) {
             nomedadisciplina = null;
             optionconceito = null;
             selectAvaliacao = null;
+            selectArea = null;
+            selectDisciplina = null;
+            elemento = null;
+            inputConceito = null;
             selectTipo = null;
 
             document.getElementById("loadingBtn").innerText = "0%";
             let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
             ifrIframe1.src = "blank";
             iframe.remove();
-});
 
+    });
 }
+function verificarErrosIframe(iframeDoc) {
+    const errorViewer = iframeDoc.getElementById('gxErrorViewer');
+    if (!errorViewer) return null;
 
+    const erros = errorViewer.querySelectorAll('.erro');
+    if (erros.length === 0) return null;
+
+    const mensagensErro = Array.from(erros).map(erro => erro.textContent.trim());
+    console.log(mensagensErro.join('\n'));
+    return mensagensErro.join('\n');
+}
 
 // Exemplo de uso:
 adicionarEfeitoBrilhoFlexivel('#containerLAH', {
@@ -1000,187 +1185,227 @@ adicionarEfeitoBrilhoFlexivel('#containerLAH', {
     blur: {
         before: 50,
         after: 70
-    }
+    },
+    botaoId: 'exibirLAH'
 });
 
 function adicionarEfeitoBrilhoFlexivel(containerSelector, options = {}) {
-    // Verifica se o efeito já foi executado
-    const efeitoExecutado = GM_getValue('efeitoBrilhoExecutado', false);
-    if (efeitoExecutado) {
-        return; // Se já foi executado, retorna sem fazer nada
-    }
+    // Obtém a versão atual do script
+    const versaoAtual = GM_info.script.version;
 
-    // Configurações padrão
-    const config = {
-        delay: options.delay || 1000,
-        duration: options.duration || 2000,
-        colors: {
-            before: options.colors?.before || [
-                'rgba(235, 20, 20, 0.3)',
-                'rgba(64, 255, 166, 0.3)',
-                'transparent',
-                'rgba(255, 40, 40, 0.6)'
-            ],
-            after: options.colors?.after || [
-                'rgba(57, 130, 247, 0.5)',
-                'rgba(52, 165, 104, 0.7)',
-                'rgba(57, 130, 247, 0.5)'
-            ]
-        },
-        blur: {
-            before: options.blur?.before || 30,
-            after: options.blur?.after || 50
+    // Obtém a última versão em que o efeito foi executado
+    const ultimaVersaoExecutada = GM_getValue('ultimaVersaoEfeitoBrilho', '0.0');
+
+    // Se a versão atual for diferente da última versão executada, executa o efeito
+    if (versaoAtual !== ultimaVersaoExecutada) {
+        // Configurações padrão
+        const config = {
+            delay: options.delay || 1000,
+            duration: options.duration || 2000,
+            colors: {
+                before: options.colors?.before || [
+                    'rgba(235, 20, 20, 0.3)',
+                    'rgba(64, 255, 166, 0.3)',
+                    'transparent',
+                    'rgba(255, 40, 40, 0.6)'
+                ],
+                after: options.colors?.after || [
+                    'rgba(57, 130, 247, 0.5)',
+                    'rgba(52, 165, 104, 0.7)',
+                    'rgba(57, 130, 247, 0.5)'
+                ]
+            },
+            blur: {
+                before: options.blur?.before || 30,
+                after: options.blur?.after || 50
+            }
+        };
+
+        // Obtém o container
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+
+        // Obtém o botão se o ID foi fornecido
+        const botao = options.botaoId ? document.getElementById(options.botaoId) : null;
+        let backgroundOriginal = null;
+
+        if (botao) {
+            // Salva o background original do botão
+            backgroundOriginal = botao.style.background;
         }
-    };
 
-    // Obtém o container
-    const container = document.querySelector(containerSelector);
-    if (!container) return;
+        // Cria os elementos de brilho
+        const glowBefore = document.createElement('div');
+        const glowAfter = document.createElement('div');
 
-    // Cria os elementos de brilho
-    const glowBefore = document.createElement('div');
-    const glowAfter = document.createElement('div');
+        // Configura os elementos de brilho
+        glowBefore.className = 'glow-layer before';
+        glowAfter.className = 'glow-layer after';
 
-    // Configura os elementos de brilho
-    glowBefore.className = 'glow-layer before';
-    glowAfter.className = 'glow-layer after';
-
-    // Adiciona os estilos necessários
-    const styleId = 'glow-effect-flexible-styles';
-    if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.type = 'text/css';
-        style.innerHTML = `
-            .glow-layer {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                pointer-events: none;
-                z-index: -1;
-                border-radius: inherit;
-                opacity: 0;
-            }
-
-            .glow-layer.before {
-                animation: glow-reverse-flexible ${config.duration}ms linear;
-            }
-
-            .glow-layer.after {
-                animation: glow-flexible ${config.duration}ms linear;
-            }
-
-            @keyframes glow-flexible {
-                0% {
+        // Adiciona os estilos necessários
+        const styleId = 'glow-effect-flexible-styles';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.type = 'text/css';
+            style.innerHTML = `
+                .glow-layer {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    pointer-events: none;
+                    z-index: -1;
+                    border-radius: inherit;
                     opacity: 0;
-                    transform: scale(1);
-                    background-position: 0% 0%;
-                    background-size: 100% 100%;
                 }
-                5% {
-                    opacity: 1;
-                    transform: scale(1.1);
-                    background-position: 100% 0%;
-                    background-size: 150% 150%;
-                }
-                15% {
-                    opacity: 0.8;
-                    transform: scale(1.05);
-                    background-position: 50% 100%;
-                    background-size: 180% 180%;
-                }
-                35% {
-                    opacity: 0.9;
-                    transform: scale(1.03);
-                    background-position: 25% 75%;
-                    background-size: 200% 200%;
-                }
-                65% {
-                    opacity: 0.7;
-                    transform: scale(1.04);
-                    background-position: 85% 15%;
-                    background-size: 220% 220%;
-                }
-                85% {
-                    opacity: 0.5;
-                    transform: scale(1.02);
-                    background-position: 35% 65%;
-                    background-size: 180% 180%;
-                }
-                100% {
-                    opacity: 0;
-                    transform: scale(1);
-                    background-position: 0% 0%;
-                    background-size: 100% 100%;
-                }
-            }
 
-            @keyframes glow-reverse-flexible {
-                0% {
-                    opacity: 0;
-                    transform: scale(1);
-                    background-position: 0% 0%;
-                    background-size: 100% 100%;
+                .glow-layer.before {
+                    animation: glow-reverse-flexible ${config.duration}ms linear;
                 }
-                5% {
-                    opacity: 0.9;
-                    transform: scale(1.08);
-                    background-position: 0% 100%;
-                    background-size: 160% 160%;
+
+                .glow-layer.after {
+                    animation: glow-flexible ${config.duration}ms linear;
                 }
-                20% {
-                    opacity: 1;
-                    transform: scale(1.06);
-                    background-position: 100% 50%;
-                    background-size: 190% 190%;
+
+                @keyframes glow-flexible {
+                    0% {
+                        opacity: 0;
+                        transform: scale(1);
+                        background-position: 0% 0%;
+                        background-size: 100% 100%;
+                    }
+                    5% {
+                        opacity: 1;
+                        transform: scale(1.1);
+                        background-position: 100% 0%;
+                        background-size: 150% 150%;
+                    }
+                    15% {
+                        opacity: 0.8;
+                        transform: scale(1.05);
+                        background-position: 50% 100%;
+                        background-size: 180% 180%;
+                    }
+                    35% {
+                        opacity: 0.9;
+                        transform: scale(1.03);
+                        background-position: 25% 75%;
+                        background-size: 200% 200%;
+                    }
+                    65% {
+                        opacity: 0.7;
+                        transform: scale(1.04);
+                        background-position: 85% 15%;
+                        background-size: 220% 220%;
+                    }
+                    85% {
+                        opacity: 0.5;
+                        transform: scale(1.02);
+                        background-position: 35% 65%;
+                        background-size: 180% 180%;
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: scale(1);
+                        background-position: 0% 0%;
+                        background-size: 100% 100%;
+                    }
                 }
-                45% {
-                    opacity: 0.8;
-                    transform: scale(1.04);
-                    background-position: 75% 25%;
-                    background-size: 220% 220%;
+
+                @keyframes glow-reverse-flexible {
+                    0% {
+                        opacity: 0;
+                        transform: scale(1);
+                        background-position: 0% 0%;
+                        background-size: 100% 100%;
+                    }
+                    5% {
+                        opacity: 0.9;
+                        transform: scale(1.08);
+                        background-position: 0% 100%;
+                        background-size: 160% 160%;
+                    }
+                    20% {
+                        opacity: 1;
+                        transform: scale(1.06);
+                        background-position: 100% 50%;
+                        background-size: 190% 190%;
+                    }
+                    45% {
+                        opacity: 0.8;
+                        transform: scale(1.04);
+                        background-position: 75% 25%;
+                        background-size: 220% 220%;
+                    }
+                    75% {
+                        opacity: 0.6;
+                        transform: scale(1.03);
+                        background-position: 15% 85%;
+                        background-size: 250% 250%;
+                    }
+                    90% {
+                        opacity: 0.3;
+                        transform: scale(1.01);
+                        background-position: 65% 35%;
+                        background-size: 280% 280%;
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: scale(1);
+                        background-position: 200% 200%;
+                        background-size: 300% 300%;
+                    }
                 }
-                75% {
-                    opacity: 0.6;
-                    transform: scale(1.03);
-                    background-position: 15% 85%;
-                    background-size: 250% 250%;
+
+                @keyframes botao-brilho {
+                    0% {
+                        background: ${backgroundOriginal || 'rgba(57, 130, 247, 0.5)'};
+                    }
+                    25% {
+                        background: rgba(52, 165, 104, 0.7);
+                    }
+                    50% {
+                        background: rgba(57, 130, 247, 0.9);
+                    }
+                    75% {
+                        background: rgba(52, 165, 104, 0.7);
+                    }
+                    100% {
+                        background: ${backgroundOriginal || 'rgba(57, 130, 247, 0.5)'};
+                    }
                 }
-                90% {
-                    opacity: 0.3;
-                    transform: scale(1.01);
-                    background-position: 65% 35%;
-                    background-size: 280% 280%;
-                }
-                100% {
-                    opacity: 0;
-                    transform: scale(1);
-                    background-position: 200% 200%;
-                    background-size: 300% 300%;
-                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Configura os estilos específicos para este container
+        glowBefore.style.background = `conic-gradient(from 0deg, ${config.colors.before.join(',')})`;
+        glowBefore.style.filter = `blur(${config.blur.before}px)`;
+        glowAfter.style.background = `conic-gradient(from 0deg, ${config.colors.after.join(',')})`;
+        glowAfter.style.filter = `blur(${config.blur.after}px)`;
+
+        // Adiciona os elementos de brilho ao container
+        setTimeout(() => {
+            container.appendChild(glowBefore);
+            container.appendChild(glowAfter);
+
+            // Se houver um botão, anima seu background
+            if (botao) {
+                botao.style.animation = `botao-brilho ${config.duration}ms linear`;
             }
-        `;
-        document.head.appendChild(style);
+        }, config.delay);
+
+        // Após a animação terminar, restaura o background original do botão e armazena a versão atual
+        setTimeout(() => {
+            glowBefore.remove();
+            glowAfter.remove();
+            if (botao) {
+                botao.style.animation = '';
+                botao.style.background = backgroundOriginal;
+            }
+            GM_setValue('ultimaVersaoEfeitoBrilho', versaoAtual);
+        }, config.duration + config.delay);
     }
-
-    // Configura os estilos específicos para este container
-    glowBefore.style.background = `conic-gradient(from 0deg, ${config.colors.before.join(',')})`;
-    glowBefore.style.filter = `blur(${config.blur.before}px)`;
-    glowAfter.style.background = `conic-gradient(from 0deg, ${config.colors.after.join(',')})`;
-    glowAfter.style.filter = `blur(${config.blur.after}px)`;
-
-   // Adiciona os elementos de brilho ao container
-    setTimeout(() => {
-    container.appendChild(glowBefore);
-    container.appendChild(glowAfter);
-    }, config.delay);
-
-    // Após a animação terminar, marca o efeito como executado
-    setTimeout(() => {
-        glowBefore.remove();
-        glowAfter.remove();
-        GM_setValue('efeitoBrilhoExecutado', true);
-    }, config.duration+config.delay);
 }
