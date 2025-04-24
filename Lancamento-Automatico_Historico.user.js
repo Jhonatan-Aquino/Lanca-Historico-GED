@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.4
+// @version       3.4.5
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -528,6 +528,8 @@ function voltar() {
     $('.divcarregando').slideUp(500, 'swing');
     $('.divajuda').slideUp(500, 'swing');
     $('#btnajuda').fadeIn(500);
+
+    document.getElementById("loadingBtn").innerText = "0%";
 }
 function ajuda() {
     // Oculta os botões e controles e exibe o seletor novamente
@@ -543,6 +545,18 @@ function ajuda() {
 
 // Função para processar os dados colados na textarea
 function processarTextoCSV() {
+    // Limpa os logs e a fila do LogManager
+    if (logManager) {
+        logManager.queue = []; // Limpa a fila
+        logManager.isDisplaying = false; // Reseta o estado de exibição
+        logManager.lastMessage = ''; // Limpa a última mensagem
+        logManager.lastMessageTime = 0; // Reseta o tempo da última mensagem
+        if (logManager.divLog) {
+            logManager.divLog.style.display = 'none'; // Esconde o div de log
+            logManager.divLog.innerHTML = ''; // Limpa o conteúdo
+        }
+    }
+
     var texto = document.getElementById("TEXTAREACSV").value.trim(); // Remove espaços extras no início e fim
 
     // Remove aspas no início e no fim, se existirem
@@ -607,8 +621,8 @@ function processarTextoCSV() {
 
 // Verifica os anos disponíveis no histórico do aluno
 async function verificanomeano() {
-    var coluna = Mxhistorico[0];
-    var codaluno = coluna[1][0];
+    var colunavar = Mxhistorico[0];
+    var codaluno = colunavar[1][0];
 
     document.querySelector('#vGEDALUCOD').value = codaluno;
     document.querySelector('.btnConsultar').click();
@@ -793,7 +807,7 @@ async function deletarmsg() {
         const verificarCarregamento = () => {
             const elementoCarregamento = local.getElementById('gx_ajax_notification');
             const tempoAtual = Date.now();
-            const tempoDecorrido = tempoAtual - tempoInicio;
+            let tempoDecorrido = tempoAtual - tempoInicio;
 
             // Verifica se o tempo máximo foi atingido
             if (tempoDecorrido >= tempoMaximoEspera && !tempoLimiteAtingido) {
@@ -816,10 +830,54 @@ async function deletarmsg() {
     });
 };
 let ErrosInserir = [];
+let erros = [];
+let coluna = [];
+
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
+    // Cria um escopo isolado para a execução
+    const execucaoAtual = {
+        codhistorico,
+        index,
+        coluna: null,
+        erros: [],
+        ErrosInserir: [],
+        tipodeavaliacao: null,
+        selectAvaliacao: null,
+        selectArea: null,
+        selectDisciplina: null,
+        elemento: null,
+        inputConceito: null,
+        selectTipo: null,
+        nomedadisciplina: null,
+        optionconceito: null,
+        iframe: null,
+        iframeDoc: null,
+        tamanhocoluna: null,
+        evolucao: null,
+        codaluno: null,
+        tipolancamento: null,
+        codigoArea: null,
+        conceito: null,
+        changeEvent: new Event('change'),
+        btn: document.getElementById("loadingBtn")
+    };
+
+    // Função para verificar erros no iframe
+    function verificarErrosIframe(iframeDoc) {
+        let errorViewer = iframeDoc.getElementById('gxErrorViewer');
+        if (!errorViewer) return null;
+
+        let erros = errorViewer.querySelectorAll('.erro');
+        if (erros.length === 0) return null;
+
+        let mensagensErro = Array.from(erros).map(erro => erro.textContent.trim());
+        console.log(mensagensErro.join('\n'));
+        return mensagensErro.join('\n');
+    }
+
     // Verifica a permissão real antes de prosseguir
-    if (codhistorico !== 1) { // Se não for um novo histórico
+    if (codhistorico !== 1) {
         let permissaoReal = permissoesHistorico.get(codhistorico);
         if (permissaoReal === 0) {
             exibirLog('Você não tem permissão para alterar este histórico!', 5000, '#FF4B40');
@@ -827,7 +885,7 @@ async function preencherFormulario(codhistorico, index) {
             return;
         }
     }
-    ErrosInserir = [];
+
     exibirLog('Iniciando!', 3000);
     $('.btnajuda').fadeOut(500);
     $('.btnscontrole').fadeOut(500);
@@ -848,25 +906,26 @@ async function preencherFormulario(codhistorico, index) {
 
     atualizarProgresso(5);
     divCredit.appendChild(ifrIframe1);
-    let coluna = Mxhistorico[index].filter(linha =>
+    execucaoAtual.coluna = Mxhistorico[index].filter(linha =>
         linha.some(valor => valor !== null && valor !== undefined && valor !== "")
     );
 
-    let codaluno = coluna[1][0];
-    let tipodeavaliacao = (!coluna[2] || !coluna[2][2] || coluna[2][2].trim() === "" || /\d/.test(coluna[2][2])) ? "NOTA" : "CONCEITO";
+    execucaoAtual.codaluno = execucaoAtual.coluna[1][0];
+    execucaoAtual.tipodeavaliacao = (!execucaoAtual.coluna[2] || !execucaoAtual.coluna[2][2] || execucaoAtual.coluna[2][2].trim() === "" || /\d/.test(execucaoAtual.coluna[2][2])) ? "NOTA" : "CONCEITO";
 
     // Verifica se a coluna[1][3] tem conteúdo para determinar o tipo de avaliação e lançamento
-    if (coluna[1][3]==null) {
+    if (execucaoAtual.coluna[1][3]==null) {
         exibirLog('O sistema encontrou um erro ao processar o histórico escolar! Revise o tipo de avaliação e tente novamente!', 5000, '#FF4B40');
-        voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-        setTimeout(() => {return;}, 5000);
-    } else if (coluna[1][3].trim() !== "") {
-        tipodeavaliacao = "CONCEITO";
-        var tipolancamento = "A";
+        voltar();
+        return;
+    }
+
+    execucaoAtual.tipolancamento = execucaoAtual.coluna[1][3].trim() !== "" ? "A" : "D";
+    if (execucaoAtual.coluna[1][3].trim() !== "") {
+        execucaoAtual.tipodeavaliacao = "CONCEITO";
         exibirLog('Lançamento de Conceito por Área de Conhecimento!', 3000);
     } else {
-        var tipolancamento = "D";
-        if (tipodeavaliacao === "CONCEITO") {
+        if (execucaoAtual.tipodeavaliacao === "CONCEITO") {
             exibirLog('Lançamento de Conceito por Disciplina!', 3000);
         } else {
             exibirLog('Lançamento de Nota por Disciplina!', 3000);
@@ -875,290 +934,318 @@ async function preencherFormulario(codhistorico, index) {
 
     let codigolotacao = document.getElementById("span_vGERLOTCOD").textContent;
     ifrIframe1.src = codhistorico == 1
-        ? `http://sigeduca.seduc.mt.gov.br/ged/HWGedValidacaoHistorico.aspx?${codhistorico},${codaluno},,0,HWMGedHistorico`
-        : `http://sigeduca.seduc.mt.gov.br/ged/hwtgedhistoricoescolar.aspx?${codhistorico},${codaluno},HWMGedHistorico,${codigolotacao},UPD,N`;
+        ? `http://sigeduca.seduc.mt.gov.br/ged/HWGedValidacaoHistorico.aspx?${codhistorico},${execucaoAtual.codaluno},,0,HWMGedHistorico`
+        : `http://sigeduca.seduc.mt.gov.br/ged/hwtgedhistoricoescolar.aspx?${codhistorico},${execucaoAtual.codaluno},HWMGedHistorico,${codigolotacao},UPD,N`;
 
     atualizarProgresso(5);
 
-    ifrIframe1.addEventListener("load", async function () {
-        let iframe = parent.document.querySelector("iframe#iframe1");
-        let iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    // Remove qualquer listener anterior do iframe
+    ifrIframe1.removeEventListener("load", iframeLoadHandler);
 
-        await aguardarCarregamentoCompleto(iframeDoc);
-        try {
-            iframeDoc.getElementById("vGEDHISTANO").value = coluna[0][0] || "";
-            iframeDoc.getElementById("vGEDSERIECOD").value = coluna[0][1] || "";
-            iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
-        if (coluna[1][2]) {iframeDoc.getElementById("vGEDHISTOBS").textContent = decodeURIComponent(coluna[1][2]);}
-        iframeDoc.getElementById("vGEDHISTNOMLOT").setAttribute("value", coluna[0][2] || "");
-        iframeDoc.getElementById("vGEDHISTCIDID").setAttribute("value", coluna[0][3] || "");
-        } catch (erro) {
-            exibirLog('O sistema encontrou um erro! Revise o cabeçalho do histórico escolar e tente novamente!', 5000, '#FF4B40');
-            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-            setTimeout(() => {return;}, 5000);
+    // Declara a função iframeLoadHandler antes de usá-la
+    async function iframeLoadHandler() {
+        execucaoAtual.iframe = parent.document.querySelector("iframe#iframe1");
+        execucaoAtual.iframeDoc = execucaoAtual.iframe.contentDocument || execucaoAtual.iframe.contentWindow.document;
+
+        // Espera o iframe carregar completamente
+        await esperar(2000);
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+
+        // Verifica se os elementos necessários existem
+        const elementosNecessarios = [
+            "vGEDHISTANO",
+            "vGEDSERIECOD",
+            "vGEDHISTCRGHOR",
+            "vGEDHISTOBS",
+            "vGEDHISTNOMLOT",
+            "vGEDHISTCIDID"
+        ];
+
+        // Verifica se todos os elementos existem antes de tentar acessá-los
+        const elementosExistem = elementosNecessarios.every(id => {
+            const elemento = execucaoAtual.iframeDoc.getElementById(id);
+            if (!elemento) {
+                console.error(`Elemento ${id} não encontrado no iframe`);
+                return false;
+            }
+            return true;
+        });
+
+        if (!elementosExistem) {
+            exibirLog('O sistema encontrou um erro! O formulário não foi carregado corretamente. Por favor, tente novamente.', 5000, '#FF4B40');
+            voltar();
+            return;
         }
+
+
+            // Preenche os campos do formulário
+            execucaoAtual.iframeDoc.getElementById("vGEDHISTANO").value = execucaoAtual.coluna[0][0] || "";
+            execucaoAtual.iframeDoc.getElementById("vGEDSERIECOD").value = execucaoAtual.coluna[0][1] || "";
+            execucaoAtual.iframeDoc.getElementById("vGEDHISTCRGHOR").value = "";
+
+            if (execucaoAtual.coluna[1][2]) {
+                const elementoOBS = execucaoAtual.iframeDoc.getElementById("vGEDHISTOBS");
+                if (elementoOBS) {
+                    elementoOBS.textContent = decodeURIComponent(execucaoAtual.coluna[1][2]);
+                }
+            }
+
+            const elementoNOMLOT = execucaoAtual.iframeDoc.getElementById("vGEDHISTNOMLOT");
+            if (elementoNOMLOT) {
+                elementoNOMLOT.setAttribute("value", execucaoAtual.coluna[0][2] || "");
+            }
+
+            const elementoCIDID = execucaoAtual.iframeDoc.getElementById("vGEDHISTCIDID");
+            if (elementoCIDID) {
+                elementoCIDID.setAttribute("value", execucaoAtual.coluna[0][3] || "");
+            }
+
+            await esperar(1000);
+
+
         const changeEvent = new Event('change');
         try {
-        let selectAvaliacao = iframeDoc.getElementById('vGEDHISTFRMAVA');
-        selectAvaliacao.value = tipodeavaliacao === "NOTA" ? "3" : "2";
-        selectAvaliacao.dispatchEvent(changeEvent);
+            execucaoAtual.selectAvaliacao = execucaoAtual.iframeDoc.getElementById('vGEDHISTFRMAVA');
+            execucaoAtual.selectAvaliacao.value = execucaoAtual.tipodeavaliacao === "NOTA" ? "3" : "2";
+            execucaoAtual.selectAvaliacao.dispatchEvent(changeEvent);
         } catch (erro) {
             exibirLog('O sistema encontrou um erro ao tentar selecionar o tipo de avaliação!', 5000, '#FF4B40');
-            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-            setTimeout(() => {return;}, 5000);
+            voltar();
+            return;
         }
+
         await esperar(1000);
         await esperarCarregarIframe(ifrIframe1, "#vGEDHISTTPO");
 
         try {
-        let selectTipo = iframeDoc.getElementById('vGEDHISTTPO');
-        selectTipo.value = tipolancamento;
-        selectTipo.dispatchEvent(changeEvent);
+            execucaoAtual.selectTipo = execucaoAtual.iframeDoc.getElementById('vGEDHISTTPO');
+            execucaoAtual.selectTipo.value = execucaoAtual.tipolancamento;
+            execucaoAtual.selectTipo.dispatchEvent(changeEvent);
         } catch (erro) {
             exibirLog('O sistema encontrou um erro ao tentar selecionar o tipo de lançamento!', 5000, '#FF4B40');
-            voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-            setTimeout(() => {return;}, 5000);
+            voltar();
+            return;
         }
 
         // Se for lançamento por área de conhecimento
-        if (tipolancamento === "A") {
-            await aguardarCarregamentoCompleto(iframeDoc);
+        if (execucaoAtual.tipolancamento === "A") {
+            await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
             await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
 
             // Extrai o código da área e o conceito da coluna[1][3]
-            let [codigoArea, conceito] = coluna[1][3].replace(/[\[\]]/g, '').split(';');
+            let [codigoArea, conceito] = execucaoAtual.coluna[1][3].replace(/[\[\]]/g, '').split(';');
 
             // Preenche o código da área
             try {
-            let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
-            selectArea.value = codigoArea;
-            selectArea.dispatchEvent(changeEvent);
-            atualizarProgresso(40);
+                execucaoAtual.selectArea = execucaoAtual.iframeDoc.getElementById('vGEDHISTAREACOD');
+                execucaoAtual.selectArea.value = codigoArea;
+                execucaoAtual.selectArea.dispatchEvent(changeEvent);
+                atualizarProgresso(40);
             } catch (erro) {
                 exibirLog('A Área de Conhecimento informada não foi encontrada!', 5000, '#FF4B40');
-                voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-                setTimeout(() => {return;}, 5000);
+                voltar();
+                return;
             }
             await esperar(500);
             try {
-            // Preenche o conceito
-            let inputConceito = iframeDoc.getElementById('vGEDHISTAREACONSGL');
-            inputConceito.value = conceito;
-            inputConceito.dispatchEvent(changeEvent);
-            atualizarProgresso(40);
+                // Preenche o conceito
+                execucaoAtual.inputConceito = execucaoAtual.iframeDoc.getElementById('vGEDHISTAREACONSGL');
+                execucaoAtual.inputConceito.value = conceito;
+                execucaoAtual.inputConceito.dispatchEvent(changeEvent);
+                atualizarProgresso(40);
             } catch (erro) {
                 exibirLog('O conceito informado não foi encontrado!', 5000, '#FF4B40');
-                voltar(); // Adicionado para garantir que o usuário volte à tela anterior em caso de erro
-                setTimeout(() => {return;}, 5000);
+                voltar();
+                return;
             }
 
             await esperar(500);
-            iframeDoc.querySelector(".btnIncluir")?.click();
-            await aguardarCarregamentoCompleto(iframeDoc);
-            let erros = verificarErrosIframe(iframeDoc);
-            if (erros) {
-                throw new Error(erros);
-            }else{
+            execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+            await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+            execucaoAtual.erros = verificarErrosIframe(execucaoAtual.iframeDoc);
+            if (execucaoAtual.erros) {
+                throw new Error(execucaoAtual.erros);
+            } else {
                 atualizarProgresso(10);
             }
 
-            if (coluna[1][1]){
+            if (execucaoAtual.coluna[1][1]) {
                 try {
-                await aguardarCarregamentoCompleto(iframeDoc);
-                iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(coluna[1][1]);
-                iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
-                exibirLog('Corrigindo a carga horária!', 2000);
-                iframeDoc.querySelector(".btnIncluir")?.click();
+                    await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+                    execucaoAtual.iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(execucaoAtual.coluna[1][1]);
+                    execucaoAtual.iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+                    exibirLog('Corrigindo a carga horária!', 2000);
+                    execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
                 } catch (erro) {
                     exibirLog('O sistema encontrou um erro ao tentar corrigir a carga horária!', 5000, '#FF4B40');
-                }}
-
-                await aguardarCarregamentoCompleto(iframeDoc);
-
-                $('.divcarregando').slideUp(1000);
-                btn.classList.remove("loading");
-                exibirLog('CONCLUÍDO!', 4000,'#34A568');
-                processarTextoCSV();
-                tipodeavaliacao = null;
-                coluna = null;
-                codaluno = null;
-                selectAvaliacao = null;
-                tipolancamento = null;
-                selectTipo = null;
-                erros = null;
-
-                await esperar(3000);
-
-                document.getElementById("loadingBtn").innerText = "0%";
-                let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
-                ifrIframe1.src = "blank";
-                iframe.remove();
-
-            return;
-            }
-
-        // Se for lançamento por disciplina, continua com o código existente
-        let tamanhocoluna = coluna.length;
-        atualizarProgresso(5);
-        let evolucao = 85 / (tamanhocoluna - 2);
-        iframeDoc.querySelector(".btnIncluir")?.click();
-        await aguardarCarregamentoCompleto(iframeDoc);
-        let erros = verificarErrosIframe(iframeDoc);
-        if (erros) {
-            exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + erros, 150000, '#FF4B40');
-            throw new Error(erros);
-        }
-        await aguardarCarregamentoCompleto(iframeDoc);
-
-        if(!coluna[2]){atualizarProgresso(100);}
-
-            for (let linha = 2; linha < tamanhocoluna; linha++) {
-                try {
-                    await aguardarCarregamentoCompleto(iframeDoc);
-                    await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
-
-                    try {
-                        let selectArea = iframeDoc.getElementById('vGEDHISTAREACOD');
-                        selectArea.value = coluna[linha][0] || "";
-                        selectArea.dispatchEvent(changeEvent);
-                        atualizarProgresso(evolucao / 5);
-                    } catch (erro) {
-                        throw new Error('Área de Conhecimento não encontrada');
-                    }
-                    await esperar(500);
-                    await aguardarCarregamentoCompleto(iframeDoc);
-                    await esperarCarregarIframe(ifrIframe1, "#vGEDHISTDISCCOD");
-
-                    try {
-                        let selectDisciplina = iframeDoc.getElementById('vGEDHISTDISCCOD');
-                        selectDisciplina.value = coluna[linha][1] || "";
-                        selectDisciplina.dispatchEvent(changeEvent);
-                        atualizarProgresso(evolucao / 5);
-                        var nomedadisciplina = selectDisciplina.querySelector('option[value="'+coluna[linha][1]+'"]').textContent;
-                    } catch (erro) {
-                        throw new Error('Disciplina não encontrada');
-                    }
-
-                    await esperar(500);
-                    let elemento = tipodeavaliacao === "NOTA"
-                        ? iframeDoc.getElementById("vGEDHISTDISCAVANOTA")
-                        : iframeDoc.getElementById("vGEDHISTDISCCONSGL");
-
-                    try {
-                        elemento.value = tipodeavaliacao === "NOTA"
-                            ? (coluna[linha][2] || "").replace(/\./g, ",")
-                            : coluna[linha][2];
-                        elemento.dispatchEvent(changeEvent);
-                    } catch (erro) {
-                        throw new Error('Erro ao tentar inserir a nota');
-                    }
-                    var optionconceito = tipodeavaliacao === "CONCEITO"
-                        ? elemento.querySelector('option[value="'+coluna[linha][2]+'"]')
-                        : "é nota";
-                    if(!optionconceito){
-                        throw new Error('Conceito não encontrado');
-                    }
-
-                    atualizarProgresso(evolucao / 5);
-
-                    await esperar(500);
-                    try {
-                        iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = coluna[linha][3];
-                        iframeDoc.getElementById("vGEDHISTDISCCRGHOR").dispatchEvent(changeEvent);
-                        atualizarProgresso(evolucao / 5);
-                    } catch (erro) {
-                        throw new Error('Erro ao tentar inserir a carga horária');
-                    }
-                    try {
-                        await esperar(1000);
-                        iframeDoc.querySelector(".btnIncluir")?.click();
-                        await aguardarCarregamentoCompleto(iframeDoc);
-                        let erros = verificarErrosIframe(iframeDoc);
-                        if (erros) {
-                            throw new Error(erros);
-                        }
-
-                        atualizarProgresso(evolucao / 5);
-                    } catch (erro) {
-                        throw new Error(erro.message);
-                    }
-                    //Exibir log da displina incluida
-                    exibirLog(nomedadisciplina + '  Inserido!', 1500);
-                    selectArea = null;
-                    selectDisciplina = null;
-                    erros = null;
-                    elemento = null;
-                    nomedadisciplina = null;
-                    await aguardarCarregamentoCompleto(iframeDoc);
-                } catch (erro) {
-                    // Registra o erro específico da linha
-                    exibirLog(`Erro ao inserir ${nomedadisciplina ? nomedadisciplina : `a disciplina ${coluna[linha][1]}`}!`, 4000, '#FF4B40');
-                    ErrosInserir.push(`Erro ao inserir ${nomedadisciplina ? nomedadisciplina : `a disciplina ${coluna[linha][1]}`}-${erro.message}`);
-                    nomedadisciplina = null;
-
-                    // Continua para a próxima linha
-                    continue;
-                }
-
-            }
-            if (coluna[1][1]){
-                try {
-                    await aguardarCarregamentoCompleto(iframeDoc);
-                    iframeDoc.getElementById("vGEDHISTCRGHOR").value  = decodeURIComponent(coluna[1][1]);
-                    iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
-                    exibirLog('Corrigindo a carga horária!', 1000);
-                    await esperar(600);
-                iframeDoc.querySelector(".btnIncluir")?.click();
-                } catch (erro) {
-                    ErrosInserir.push(`Erro ao tentar corrigir a carga horária do histórico escolar. ${erro.message}`);
-                    exibirLog('Erro ao tentar corrigir a carga horária do histórico escolar!', 5000, '#FF4B40');
                 }
             }
 
-            await aguardarCarregamentoCompleto(iframeDoc);
+            await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
 
             $('.divcarregando').slideUp(1000);
             btn.classList.remove("loading");
-            await aguardarCarregamentoCompleto(iframeDoc);
-
-            if (ErrosInserir.length > 0) {
-                exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + ErrosInserir.join('\n'), 150000, '#FF4B40');
-            } else {
-                exibirLog('CONCLUÍDO!', 4000,'#34A568');
-            }
-
+            exibirLog('CONCLUÍDO!', 4000,'#34A568');
             processarTextoCSV();
-            tipodeavaliacao = null;
-            coluna = null;
-            codaluno = null;
-            tamanhocoluna = null;
-            evolucao = null;
-            nomedadisciplina = null;
-            optionconceito = null;
-            selectAvaliacao = null;
-            selectArea = null;
-            selectDisciplina = null;
-            elemento = null;
-            inputConceito = null;
-            selectTipo = null;
+
+            // Limpeza das variáveis
+            Object.keys(execucaoAtual).forEach(key => {
+                execucaoAtual[key] = null;
+            });
+
+            await esperar(3000);
 
             document.getElementById("loadingBtn").innerText = "0%";
-            let botaoIndex = document.querySelector(`.botaoSCT[data-index="${index}"]`);
-            ifrIframe1.src = "blank";
-            iframe.remove();
+            let botaoIndex = document.querySelector(`.botaoSCT[data-index="${execucaoAtual.index}"]`);
+            ifrIframe1.src = "about:blank";
+            execucaoAtual.iframe.remove();
 
-    });
-}
-function verificarErrosIframe(iframeDoc) {
-    const errorViewer = iframeDoc.getElementById('gxErrorViewer');
-    if (!errorViewer) return null;
+            return;
+        }
 
-    const erros = errorViewer.querySelectorAll('.erro');
-    if (erros.length === 0) return null;
+        // Se for lançamento por disciplina, continua com o código existente
+        execucaoAtual.tamanhocoluna = execucaoAtual.coluna.length;
+        atualizarProgresso(5);
+        execucaoAtual.evolucao = 85 / (execucaoAtual.tamanhocoluna - 2);
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+        execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+        execucaoAtual.erros = await verificarErrosIframe(execucaoAtual.iframeDoc);
+        await esperar(500);
+        if (execucaoAtual.erros) {
+            exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + execucaoAtual.erros, 150000, '#FF4B40');
+            voltar();
+            throw new Error(execucaoAtual.erros);
+            return;
+        }
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
 
-    const mensagensErro = Array.from(erros).map(erro => erro.textContent.trim());
-    console.log(mensagensErro.join('\n'));
-    return mensagensErro.join('\n');
+        if(!execucaoAtual.coluna[2]){atualizarProgresso(100);}
+
+        for (let linha = 2; linha < execucaoAtual.tamanhocoluna; linha++) {
+            try {
+                await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+                await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
+
+                try {
+                    execucaoAtual.selectArea = execucaoAtual.iframeDoc.getElementById('vGEDHISTAREACOD');
+                    execucaoAtual.selectArea.value = execucaoAtual.coluna[linha][0] || "";
+                    execucaoAtual.selectArea.dispatchEvent(changeEvent);
+                    atualizarProgresso(execucaoAtual.evolucao / 5);
+                } catch (erro) {
+                    throw new Error('Área de Conhecimento não encontrada');
+                }
+                await esperar(500);
+                await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+                await esperarCarregarIframe(ifrIframe1, "#vGEDHISTDISCCOD");
+
+                try {
+                    execucaoAtual.selectDisciplina = execucaoAtual.iframeDoc.getElementById('vGEDHISTDISCCOD');
+                    execucaoAtual.selectDisciplina.value = execucaoAtual.coluna[linha][1] || "";
+                    execucaoAtual.selectDisciplina.dispatchEvent(changeEvent);
+                    atualizarProgresso(execucaoAtual.evolucao / 5);
+                    execucaoAtual.nomedadisciplina = execucaoAtual.selectDisciplina.querySelector('option[value="'+execucaoAtual.coluna[linha][1]+'"]').textContent;
+                } catch (erro) {
+                    throw new Error('Disciplina não encontrada');
+                }
+
+                await esperar(500);
+                execucaoAtual.elemento = execucaoAtual.tipodeavaliacao === "NOTA"
+                    ? execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCAVANOTA")
+                    : execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCONSGL");
+
+                try {
+                    execucaoAtual.elemento.value = execucaoAtual.tipodeavaliacao === "NOTA"
+                        ? (execucaoAtual.coluna[linha][2] || "").replace(/\./g, ",")
+                        : execucaoAtual.coluna[linha][2];
+                    execucaoAtual.elemento.dispatchEvent(changeEvent);
+                } catch (erro) {
+                    throw new Error('Erro ao tentar inserir a nota');
+                }
+                execucaoAtual.optionconceito = execucaoAtual.tipodeavaliacao === "CONCEITO"
+                    ? execucaoAtual.elemento.querySelector('option[value="'+execucaoAtual.coluna[linha][2]+'"]')
+                    : "é nota";
+                if(!execucaoAtual.optionconceito){
+                    throw new Error('Conceito não encontrado');
+                }
+
+                atualizarProgresso(execucaoAtual.evolucao / 5);
+
+                await esperar(500);
+                try {
+                    execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = execucaoAtual.coluna[linha][3];
+                    execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCRGHOR").dispatchEvent(changeEvent);
+                    atualizarProgresso(execucaoAtual.evolucao / 5);
+                } catch (erro) {
+                    throw new Error('Erro ao tentar inserir a carga horária');
+                }
+                try {
+                    await esperar(1000);
+                    execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+                    await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+                    execucaoAtual.erros = verificarErrosIframe(execucaoAtual.iframeDoc);
+                    if (execucaoAtual.erros) {
+                        throw new Error(execucaoAtual.erros);
+                    }
+
+                    atualizarProgresso(execucaoAtual.evolucao / 5);
+                } catch (erro) {
+                    throw new Error(erro.message);
+                }
+                //Exibir log da displina incluida
+                exibirLog(execucaoAtual.nomedadisciplina + '  Inserido!', 1500);
+                await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+            } catch (erro) {
+                // Registra o erro específico da linha
+                exibirLog(`Erro ao inserir ${execucaoAtual.nomedadisciplina ? execucaoAtual.nomedadisciplina : `a disciplina ${execucaoAtual.coluna[linha][1]}`}!`, 4000, '#FF4B40');
+                execucaoAtual.ErrosInserir.push(`Erro ao inserir ${execucaoAtual.nomedadisciplina ? execucaoAtual.nomedadisciplina : `a disciplina ${execucaoAtual.coluna[linha][1]}`}-${erro.message}`);
+                execucaoAtual.nomedadisciplina = null;
+
+                // Continua para a próxima linha
+                continue;
+            }
+        }
+
+        if (execucaoAtual.coluna[1][1]) {
+            try {
+                await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+                execucaoAtual.iframeDoc.getElementById("vGEDHISTCRGHOR").value = decodeURIComponent(execucaoAtual.coluna[1][1]);
+                execucaoAtual.iframeDoc.getElementById("vGEDHISTCRGHOR").dispatchEvent(changeEvent);
+                exibirLog('Corrigindo a carga horária!', 1000);
+                await esperar(600);
+                execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+            } catch (erro) {
+                execucaoAtual.ErrosInserir.push(`Erro ao tentar corrigir a carga horária do histórico escolar. ${erro.message}`);
+                exibirLog('Erro ao tentar corrigir a carga horária do histórico escolar!', 5000, '#FF4B40');
+            }
+        }
+
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+
+        $('.divcarregando').slideUp(1000);
+        btn.classList.remove("loading");
+        await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
+
+        if (execucaoAtual.ErrosInserir.length > 0) {
+            exibirLog('Atenção! Alguns erros ocorreram durante o processo:\n\n' + execucaoAtual.ErrosInserir.join('\n'), 150000, '#FF4B40');
+        } else {
+            exibirLog('CONCLUÍDO!', 4000,'#34A568');
+        }
+
+        execucaoAtual.iframe.remove();
+
+        // Limpeza final
+        Object.keys(execucaoAtual).forEach(key => {
+            execucaoAtual[key] = null;
+        });
+
+        document.getElementById("loadingBtn").innerText = "0%";
+        ifrIframe1.src = "about:blank";
+        processarTextoCSV();
+    }
+
+    // Adiciona o novo handler
+    ifrIframe1.addEventListener("load", iframeLoadHandler);
 }
 
 // Exemplo de uso:
