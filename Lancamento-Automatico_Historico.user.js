@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.4.5
+// @version       3.4.6
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -13,6 +13,7 @@
 // @downloadURL   https://raw.githubusercontent.com/Jhonatan-Aquino/Lanca-Historico-GED/main/Lancamento-Automatico_Historico.user.js
 // @require       https://code.jquery.com/jquery-3.6.0.min.js
 // ==/UserScript==
+
 
 
 
@@ -118,13 +119,13 @@ function exibirLog(mensagem, tempo = 3000, cor = '#087eff') {
         /* Estilos base e reset */
 
         #containerLAH{
-            background: rgba(220, 220, 220, 0.58);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            background:rgba(237, 237, 237, 0.55);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(6.6px);
             -webkit-backdrop-filter: blur(6.6px);
-            border: 1px solid rgba(214, 214, 214, 0.27);
+            border:1px solid rgba(214, 214, 214, 0.47);
             border-radius: 20px;
-            color: #474e68;
+            color: #293254;
             width: auto;
             text-align: center;
             font-weight: bold;
@@ -406,7 +407,7 @@ btnExibir.id = 'exibirLAH';
 btnExibir.value = 'MINIMIZAR';
 btnExibir.className = 'menuSCT';
 btnExibir.style = `
-  background: #474e68;
+  background: #293254;
   color: #ffffff;
   font-size: 12px;
   border:none;
@@ -420,7 +421,7 @@ btnExibir.style = `
   border-radius:15px;
 `;
 btnExibir.onmouseover = () => btnExibir.style.backgroundColor = "#3982F7";
-btnExibir.onmouseout = () => btnExibir.style.backgroundColor = "#474e68";
+btnExibir.onmouseout = () => btnExibir.style.backgroundColor = "#293254";
 
 // Configura o evento de clique com as funções de cookie
 btnExibir.onclick = function() {
@@ -475,14 +476,7 @@ divCredit.innerHTML = `
 <p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p>
   <div style="text-align: right; margin-top: 5px;">
       <a href="mailto:jhonatan.escola33@gmail.com?subject=Relato%20de%20Problema%20-%20${GM_info.script.name}&body=Olá,%0A%0AEncontrei%20um%20problema%20no%20script%20${GM_info.script.name}%20versão%20${GM_info.script.version}%0A%0ADetalhes%20do%20problema:%0A%0A1.%20O%20que%20aconteceu?%0A%0A2.%20O%20que%20você%20estava%20fazendo%20quando%20o%20problema%20aconteceu?%0A%0A3.%20Mensagens%20de%20erro%20(se%20houver):%0A%0A" style="font-size: 9pt; text-decoration: none; color: #666; display: inline-flex; align-items: center;">
-          Relatar um problema
-          <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="16" height="16" viewBox="0 0 256 256" style="margin-left: 5px;" xml:space="preserve">
-            <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
-              <path d="M 45 0 C 20.187 0 0 20.187 0 45 S 20.187 90 45 90 s 45 -20.187 45 -45 S 69.813 0 45 0 z M 45 82 C 24.598 82 8 65.402 8 45 s 16.598 -37 37 -37 s 37 16.598 37 37 S 65.402 82 45 82 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
-              <path d="M 45 64.393 c -2.209 0 -4 1.791 -4 4 V 71 c 0 2.209 1.791 4 4 4 s 4 -1.791 4 -4 v -2.607 C 49 66.184 47.209 64.393 45 64.393 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
-              <path d="M 45 15 c -2.209 0 -4 1.791 -4 4 v 35.393 c 0 2.209 1.791 4 4 4 s 4 -1.791 4 -4 V 19 C 49 16.791 47.209 15 45 15 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: #666; fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
-            </g>
-          </svg>
+          Relatar um problema&nbsp;&nbsp;<svg class="svg-icon" style="width: 1em; height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 85.333333a426.666667 426.666667 0 1 0 426.666667 426.666667A426.666667 426.666667 0 0 0 512 85.333333z m0 768a341.333333 341.333333 0 1 1 341.333333-341.333333 341.333333 341.333333 0 0 1-341.333333 341.333333z"  /><path d="M512 682.666667m-42.666667 0a42.666667 42.666667 0 1 0 85.333334 0 42.666667 42.666667 0 1 0-85.333334 0Z"  /><path d="M512 298.666667a42.666667 42.666667 0 0 0-42.666667 42.666666v213.333334a42.666667 42.666667 0 0 0 85.333334 0V341.333333a42.666667 42.666667 0 0 0-42.666667-42.666666z"  /></svg>
       </a>
   </div>
 </div>
@@ -566,6 +560,12 @@ function processarTextoCSV() {
 
     // Divide o texto em linhas e remove as vazias
     var linhas = texto.split("\n").map(linha => linha.trim()).filter(linha => linha !== "");
+
+    // Verifica se a primeira linha tem pelo menos uma coluna
+    if (!linhas[0]) {
+        exibirLog("Erro: Dados inválidos. A planilha está vazia.", 13000, '#FF4B40');
+        return;
+    }
 
     // Verifica a versão da planilha
     const primeiraLinha = linhas[0].split(",");
