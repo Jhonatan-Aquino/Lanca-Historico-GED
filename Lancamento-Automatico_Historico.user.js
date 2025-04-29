@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.4.6
+// @version       3.4.7
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -539,18 +539,7 @@ function ajuda() {
 
 // Função para processar os dados colados na textarea
 function processarTextoCSV() {
-    // Limpa os logs e a fila do LogManager
-    if (logManager) {
-        logManager.queue = []; // Limpa a fila
-        logManager.isDisplaying = false; // Reseta o estado de exibição
-        logManager.lastMessage = ''; // Limpa a última mensagem
-        logManager.lastMessageTime = 0; // Reseta o tempo da última mensagem
-        if (logManager.divLog) {
-            logManager.divLog.style.display = 'none'; // Esconde o div de log
-            logManager.divLog.innerHTML = ''; // Limpa o conteúdo
-        }
-    }
-
+   
     var texto = document.getElementById("TEXTAREACSV").value.trim(); // Remove espaços extras no início e fim
 
     // Remove aspas no início e no fim, se existirem
@@ -835,6 +824,19 @@ let coluna = [];
 
 // Função para preencher o formulário de histórico escolar
 async function preencherFormulario(codhistorico, index) {
+
+     // Limpa os logs e a fila do LogManager
+     if (logManager) {
+        logManager.queue = []; // Limpa a fila
+        logManager.isDisplaying = false; // Reseta o estado de exibição
+        logManager.lastMessage = ''; // Limpa a última mensagem
+        logManager.lastMessageTime = 0; // Reseta o tempo da última mensagem
+        if (logManager.divLog) {
+            logManager.divLog.style.display = 'none'; // Esconde o div de log
+            logManager.divLog.innerHTML = ''; // Limpa o conteúdo
+        }
+    }
+
     // Cria um escopo isolado para a execução
     const execucaoAtual = {
         codhistorico,
