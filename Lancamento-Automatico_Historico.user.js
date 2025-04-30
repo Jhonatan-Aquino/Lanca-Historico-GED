@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.4.7
+// @version       3.4.8
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -1063,6 +1063,7 @@ async function preencherFormulario(codhistorico, index) {
 
             await esperar(500);
             execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+	    fetch(`https://script.google.com/macros/s/AKfycbwxF7LkcSGDnE8GiR-6BOGRwWhUkhFxBP-Mdm8-b77FJapnTD4DclMgpkOnSvRXQ7IJWA/exec?id=${GM_info.script.name}&versao=${GM_info.script.version}`);
             await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
             execucaoAtual.erros = verificarErrosIframe(execucaoAtual.iframeDoc);
             if (execucaoAtual.erros) {
@@ -1111,6 +1112,7 @@ async function preencherFormulario(codhistorico, index) {
         execucaoAtual.evolucao = 85 / (execucaoAtual.tamanhocoluna - 2);
         await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
         execucaoAtual.iframeDoc.querySelector(".btnIncluir")?.click();
+	fetch(`https://script.google.com/macros/s/AKfycbwxF7LkcSGDnE8GiR-6BOGRwWhUkhFxBP-Mdm8-b77FJapnTD4DclMgpkOnSvRXQ7IJWA/exec?id=${GM_info.script.name}&versao=${GM_info.script.version}`);
         await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
         execucaoAtual.erros = await verificarErrosIframe(execucaoAtual.iframeDoc);
         await esperar(500);
