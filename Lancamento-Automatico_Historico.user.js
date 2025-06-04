@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name          Lança Historico
 // @namespace     http://tampermonkey.net/
-// @version       3.4.8
+// @version       3.4.9
 // @description   Lança Historico escolar com base do preenchimento de uma tabela do (Google Sheets)
 // @author        Jhonatan Aquino
 // @match         https://*.sigeduca.seduc.mt.gov.br/ged/hwmgedhistorico.aspx*
@@ -13,7 +13,6 @@
 // @downloadURL   https://raw.githubusercontent.com/Jhonatan-Aquino/Lanca-Historico-GED/main/Lancamento-Automatico_Historico.user.js
 // @require       https://code.jquery.com/jquery-3.6.0.min.js
 // ==/UserScript==
-
 
 
 
@@ -364,7 +363,7 @@ var Mxhistorico = [];
 var permissoesHistorico = new Map();
 
 // Versão mínima requerida da planilha
-const VERSAO_MINIMA_PLANILHA = "1.5";
+const VERSAO_MINIMA_PLANILHA = "1.6";
 
 // Adiciona funções para manipular cookies (MOVER PARA ANTES DA CRIAÇÃO DO BOTÃO)
 function setCookie(name, value, days) {
@@ -462,7 +461,7 @@ divCredit.innerHTML = `
 </svg>
   <div class="divseletor">
     <h3>Cole abaixo os dados do histórico<br>gerados pela planilha do Drive!</h3>
-    <span style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://docs.google.com/spreadsheets/d/1GU7c9Xbfx5oIhogx-MXACMV1FOtHPLS4DWQF9hPN8TU/edit?usp=sharing">clique aqui para acessar o modelo.</a></span><br><br>
+    <span style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>Caso não tenha a planilha base, <a target="_blank" href="https://docs.google.com/spreadsheets/d/1vF1DgSXJcLeQR3KyGEM5Ne3Tk7ykCvx-kFZR-NMLePY/edit?usp=sharing">clique aqui para acessar o modelo.</a></span><br><br>
     <br>
     <textarea id="TEXTAREACSV" rows="10" cols="50" placeholder="Cole aqui os dados gerados na planilha..."></textarea>
     <br><br>
@@ -472,7 +471,7 @@ divCredit.innerHTML = `
   <div class='divcarregando'><p style='font-weight:bold;font-size:20pt; line-height:0px; margin-bottom:20px; font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;'>AGUARDE!</p><p style='font-weight:normal;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;' >estou inserindo o seu histórico...</p><button id="loadingBtn" onclick="startLoading()">0%</button></div>
   <div class='divbotoes' style='display:none'></div><br>
   <div class="divajuda"><h3 style="font-size:15pt;text-align:center; line-height: 10px;font-family: "SF Pro Text","SF Pro Icons","Helvetica Neue","Helvetica","Arial",sans-serif !important;">Como usar?</h3>
-  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1GU7c9Xbfx5oIhogx-MXACMV1FOtHPLS4DWQF9hPN8TU/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.<em> A Formula <b>não funciona</b> se você baixar a planilha e tentar usar no Excel!</em></p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br><br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
+  	<p><b>1. Acessar a planilha modelo:</b> O primeiro passo é acessar a planilha modelo fornecida pelo <a target="_blank" href="https://docs.google.com/spreadsheets/d/1vF1DgSXJcLeQR3KyGEM5Ne3Tk7ykCvx-kFZR-NMLePY/edit?usp=sharing">link</a> e fazer uma cópia dela para o seu Drive, para que você possa edita-la. Nela, você irá preencher os dados do histórico escolar.<em> A Formula <b>não funciona</b> se você baixar a planilha e tentar usar no Excel!</em></p> <p><b>2. Preencher a planilha:</b> Complete as células indicadas com as informações necessárias. Após finalizar o preenchimento, a planilha gerará automaticamente os dados formatados em uma célula destacada.</p> <p><b>3. Copiar os dados gerados:</b> Selecione e copie todo o conteúdo da célula destacada, garantindo que todos os dados estejam incluídos.</p> <p><b>4. Colar os dados no painel de inserção:</b> No sistema de lançamento de histórico, cole os dados copiados no campo indicado e clique no botão "Carregar dados".</p> <p><b>5. Selecionar e inserir o histórico:</b> Após carregar os dados, escolha o ano correspondente e clique no botão para inserir o histórico no sistema.<br><br>Obs.: Quando o botão do histórico de algum ano ficar verde, significa que ele já foi inserido, mas você ainda pode lançá-lo novamente, sobrescrevendo o histórico anterior.</p>
 <p>Pronto! Agora você pode gerenciar e atualizar os históricos escolares de forma simples e rápida.</p>
   <div style="text-align: right; margin-top: 5px;">
       <a href="mailto:jhonatan.escola33@gmail.com?subject=Relato%20de%20Problema%20-%20${GM_info.script.name}&body=Olá,%0A%0AEncontrei%20um%20problema%20no%20script%20${GM_info.script.name}%20versão%20${GM_info.script.version}%0A%0ADetalhes%20do%20problema:%0A%0A1.%20O%20que%20aconteceu?%0A%0A2.%20O%20que%20você%20estava%20fazendo%20quando%20o%20problema%20aconteceu?%0A%0A3.%20Mensagens%20de%20erro%20(se%20houver):%0A%0A" style="font-size: 9pt; text-decoration: none; color: #666; display: inline-flex; align-items: center;">
@@ -539,8 +538,15 @@ function ajuda() {
 
 // Função para processar os dados colados na textarea
 function processarTextoCSV() {
-   
+
     var texto = document.getElementById("TEXTAREACSV").value.trim(); // Remove espaços extras no início e fim
+
+    // Verifica se o texto é exatamente "CONFIG"
+    if (texto === "MANUT") {
+        document.getElementById("iframe1").style.display = "block";
+        document.getElementById("TEXTAREACSV").value = ""; // Apaga o conteúdo da textarea
+        return; // Para a execução da função
+    }
 
     // Remove aspas no início e no fim, se existirem
     if (texto.startsWith('"') && texto.endsWith('"')) {
@@ -1127,6 +1133,7 @@ async function preencherFormulario(codhistorico, index) {
         if(!execucaoAtual.coluna[2]){atualizarProgresso(100);}
 
         for (let linha = 2; linha < execucaoAtual.tamanhocoluna; linha++) {
+            console.log("linha sendo executada: " + linha);
             try {
                 await aguardarCarregamentoCompleto(execucaoAtual.iframeDoc);
                 await esperarCarregarIframe(ifrIframe1, "#vGEDHISTAREACOD");
@@ -1177,7 +1184,7 @@ async function preencherFormulario(codhistorico, index) {
 
                 await esperar(500);
                 try {
-                    execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = execucaoAtual.coluna[linha][3];
+                    execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCRGHOR").value = decodeURIComponent(execucaoAtual.coluna[linha][3]);
                     execucaoAtual.iframeDoc.getElementById("vGEDHISTDISCCRGHOR").dispatchEvent(changeEvent);
                     atualizarProgresso(execucaoAtual.evolucao / 5);
                 } catch (erro) {
